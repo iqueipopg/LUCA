@@ -54,6 +54,12 @@ _COMPANYFACTS_URL_TMPL: str = (
 _SUBMISSIONS_URL_TMPL: str = (
     "https://data.sec.gov/submissions/CIK{cik}.json"
 )
+_FILING_INDEX_JSON_URL_TMPL: str = (
+    "https://www.sec.gov/Archives/edgar/data/{cik_int}/{accession_nodash}/index.json"
+)
+_FILING_DOCUMENT_URL_TMPL: str = (
+    "https://www.sec.gov/Archives/edgar/data/{cik_int}/{accession_nodash}/{filename}"
+)
 
 #: Defensive fallbacks used only when ``config.yaml`` / ``config/agents.json``
 #: leave a field unresolved. In the normal LUCA layout the values resolve
@@ -174,8 +180,8 @@ def _normalize_cik(cik: str) -> str:
     return stripped.zfill(10)
 
 
-def _request_json(url: str) -> dict[str, Any]:
-    """Issue a rate-limited ``GET`` for ``url`` and return the decoded JSON.
+def _request_raw(url: str, accept: str = "application/json") -> requests.Response:
+    """Issue a rate-limited ``GET`` for ``url`` and return the raw response.
 
     The function honours the project rate limit, retries on HTTP 429 and on
     transient :class:`requests.RequestException` instances, and raises any
@@ -184,19 +190,20 @@ def _request_json(url: str) -> dict[str, Any]:
     Args:
         url: Absolute URL to fetch. The caller is responsible for building
             the URL (we do not interpolate query strings here).
+        accept: Value to send in the ``Accept`` header. Defaults to
+            ``"application/json"``; HTML callers should pass ``"text/html"``.
 
     Returns:
-        The decoded JSON payload as a dict.
+        The successful :class:`requests.Response` object. The caller is in
+        charge of decoding it (``.json()`` or ``.text``).
 
     Raises:
-        RuntimeError: If the response is not a JSON object at the top level
-            (we do not yet have an EDGAR endpoint that returns lists, so
-            anything else is treated as a contract violation).
         requests.HTTPError: For non-429 ``4xx``/``5xx`` responses.
         requests.RequestException: For transient errors that persist after
             all retries.
     """
     headers = _build_headers()
+    headers["Accept"] = accept
     timeout_s, max_retries = _resolve_l1_settings()
     rate_limit_s = _resolve_rate_limit_s()
 
@@ -258,14 +265,7 @@ def _request_json(url: str) -> dict[str, Any]:
 
         # Any other 4xx/5xx surfaces immediately — no point retrying a 404.
         response.raise_for_status()
-
-        payload = response.json()
-        if not isinstance(payload, dict):
-            raise RuntimeError(
-                f"Unexpected EDGAR response shape for {url}: "
-                f"top level is {type(payload).__name__}, expected dict."
-            )
-        return payload
+        return response
 
     # Defensive: the loop above either returns or raises. This line is only
     # reachable if ``attempts`` is non-positive, which we prevent by clamping
@@ -274,6 +274,55 @@ def _request_json(url: str) -> dict[str, Any]:
         f"EDGAR request exhausted retries without raising; "
         f"last_error={last_error!r}"
     )
+
+
+def _request_json(url: str) -> dict[str, Any]:
+    """Issue a rate-limited ``GET`` for ``url`` and return the decoded JSON.
+
+    Thin wrapper around :func:`_request_raw` that decodes the body as JSON
+    and validates the top level is a dict (every EDGAR JSON endpoint LUCA
+    consumes returns an object, never an array).
+
+    Args:
+        url: Absolute URL to fetch.
+
+    Returns:
+        The decoded JSON payload as a dict.
+
+    Raises:
+        RuntimeError: If the response is not a JSON object at the top level.
+        requests.HTTPError: For non-429 ``4xx``/``5xx`` responses.
+        requests.RequestException: For transient errors that persist after
+            all retries.
+    """
+    response = _request_raw(url, accept="application/json")
+    payload = response.json()
+    if not isinstance(payload, dict):
+        raise RuntimeError(
+            f"Unexpected EDGAR response shape for {url}: "
+            f"top level is {type(payload).__name__}, expected dict."
+        )
+    return payload
+
+
+def _request_text(url: str) -> str:
+    """Issue a rate-limited ``GET`` for ``url`` and return the body as text.
+
+    Used by :func:`fetch_10k_html` to download filing HTML.
+
+    Args:
+        url: Absolute URL to fetch.
+
+    Returns:
+        The decoded response body as a string.
+
+    Raises:
+        requests.HTTPError: For non-429 ``4xx``/``5xx`` responses.
+        requests.RequestException: For transient errors that persist after
+            all retries.
+    """
+    response = _request_raw(url, accept="text/html")
+    return response.text
 
 
 def _load_ticker_map() -> dict[str, str]:
@@ -444,9 +493,164 @@ def latest_10k_accession(submissions: dict[str, Any]) -> str | None:
     return pairs[0][1]
 
 
+def _resolve_primary_10k_filename(items: list[dict[str, Any]]) -> str | None:
+    """Pick the primary 10-K HTML document filename from an index.json listing.
+
+    Heuristic, in order of preference:
+
+    1. The ``.htm``/``.html`` item whose ``type`` field equals ``"10-K"``
+       exactly. This is the canonical primary document for EDGAR 10-K filings.
+    2. The ``.htm``/``.html`` item whose ``type`` starts with ``"10-K"`` (covers
+       ``"10-K/A"`` amendments and similar variants).
+    3. Fallback: the largest ``.htm``/``.html`` item by ``size``. We exclude
+       index/exhibit files (names starting with ``"R"`` followed by digits, the
+       inline-XBRL viewer files, or names ending with ``"index.htm"``) before
+       picking the largest. This is a safety net for filings whose ``type``
+       fields are missing or mislabelled — empirically rare but observed.
+
+    Args:
+        items: The ``directory.item`` array from the EDGAR ``index.json``
+            payload. Each entry is a dict with ``name``, ``type``, ``size``
+            and ``last-modified`` keys.
+
+    Returns:
+        The selected filename (e.g. ``"aapl-20230930.htm"``), or ``None`` if
+        no plausible HTML document is present.
+    """
+    if not isinstance(items, list):
+        return None
+
+    html_items: list[dict[str, Any]] = []
+    for entry in items:
+        if not isinstance(entry, dict):
+            continue
+        name = entry.get("name")
+        if not isinstance(name, str):
+            continue
+        lower = name.lower()
+        if not (lower.endswith(".htm") or lower.endswith(".html")):
+            continue
+        html_items.append(entry)
+
+    if not html_items:
+        return None
+
+    # 1) Exact ``type == "10-K"``.
+    for entry in html_items:
+        if entry.get("type") == "10-K":
+            return entry["name"]
+
+    # 2) ``type`` starts with ``"10-K"`` (amendments etc.).
+    for entry in html_items:
+        type_field = entry.get("type")
+        if isinstance(type_field, str) and type_field.startswith("10-K"):
+            return entry["name"]
+
+    # 3) Fallback: largest .htm by ``size``, excluding obvious non-primary files.
+    def _is_candidate(entry: dict[str, Any]) -> bool:
+        name = str(entry.get("name", "")).lower()
+        if name.endswith("index.htm") or name.endswith("index.html"):
+            return False
+        # Filing-summary helper files like R1.htm, R2.htm etc. are inline-XBRL
+        # viewer fragments, not the primary document.
+        stem = name.rsplit(".", 1)[0]
+        if stem.startswith("r") and stem[1:].isdigit():
+            return False
+        return True
+
+    candidates = [e for e in html_items if _is_candidate(e)]
+    if not candidates:
+        return None
+
+    def _size(entry: dict[str, Any]) -> int:
+        try:
+            return int(entry.get("size", 0))
+        except (TypeError, ValueError):
+            return 0
+
+    candidates.sort(key=_size, reverse=True)
+    return candidates[0]["name"]
+
+
+def fetch_10k_html(cik: str, accession: str) -> str:
+    """Download the HTML body of a 10-K filing's primary document.
+
+    The function resolves the primary document by reading the filing's
+    ``index.json`` listing on EDGAR, applying the heuristic in
+    :func:`_resolve_primary_10k_filename`, and then downloading that file as
+    text. Caching is the caller's responsibility.
+
+    Args:
+        cik: The CIK in either padded (``"0000320193"``) or unpadded
+            (``"320193"``) form. Normalised internally.
+        accession: Accession number with dashes, e.g.
+            ``"0000320193-23-000106"``.
+
+    Returns:
+        The HTML body as a string.
+
+    Raises:
+        ValueError: If ``cik`` is malformed or ``accession`` is empty.
+        RuntimeError: If ``SEC_USER_AGENT`` is not configured, the index
+            payload has no ``directory.item`` array, or no primary HTML
+            document can be identified.
+        requests.HTTPError: If EDGAR returns a non-success response.
+    """
+    if not isinstance(accession, str) or not accession.strip():
+        raise ValueError("accession must be a non-empty string.")
+    padded = _normalize_cik(cik)
+    cik_int = str(int(padded))
+    accession_nodash = accession.strip().replace("-", "")
+
+    index_url = _FILING_INDEX_JSON_URL_TMPL.format(
+        cik_int=cik_int,
+        accession_nodash=accession_nodash,
+    )
+    _LOGGER.info(
+        "Resolviendo primary document 10-K cik=%s accession=%s",
+        padded,
+        accession,
+    )
+    index_payload = _request_json(index_url)
+
+    directory = index_payload.get("directory")
+    if not isinstance(directory, dict):
+        raise RuntimeError(
+            f"EDGAR index.json missing 'directory' object for accession "
+            f"{accession!r} (url={index_url})."
+        )
+    items = directory.get("item")
+    if not isinstance(items, list):
+        raise RuntimeError(
+            f"EDGAR index.json missing 'directory.item' array for accession "
+            f"{accession!r} (url={index_url})."
+        )
+
+    filename = _resolve_primary_10k_filename(items)
+    if filename is None:
+        raise RuntimeError(
+            f"No 10-K primary HTML document found for accession {accession!r} "
+            f"(url={index_url}). Inspect the filing manually."
+        )
+
+    document_url = _FILING_DOCUMENT_URL_TMPL.format(
+        cik_int=cik_int,
+        accession_nodash=accession_nodash,
+        filename=filename,
+    )
+    _LOGGER.info(
+        "Descargando 10-K HTML cik=%s accession=%s file=%s",
+        padded,
+        accession,
+        filename,
+    )
+    return _request_text(document_url)
+
+
 __all__ = [
     "ticker_to_cik",
     "fetch_companyfacts",
     "fetch_submissions",
     "latest_10k_accession",
+    "fetch_10k_html",
 ]

@@ -216,6 +216,164 @@ class TestLatest10kAccession:
 # ---------------------------------------------------------------------------
 
 
+class TestFetch10kHtml:
+    """Tests for ``fetch_10k_html`` (T1.7).
+
+    The function makes two HTTP calls: one to ``index.json`` to discover the
+    primary document, then one to download that document. We mock both with
+    a URL-routing side effect.
+    """
+
+    @staticmethod
+    def _make_text_response(text: str, status: int = 200) -> MagicMock:
+        resp = MagicMock()
+        resp.status_code = status
+        resp.text = text
+        # ``.json()`` should never be called on the text response, but make
+        # it explode loudly if a future bug does call it.
+        resp.json.side_effect = AssertionError(
+            "fetch_10k_html should not call .json() on the document response"
+        )
+        resp.raise_for_status = MagicMock()
+        return resp
+
+    @staticmethod
+    def _index_payload(items: list[dict[str, Any]]) -> dict[str, Any]:
+        """Wrap ``items`` in the EDGAR index.json envelope."""
+        return {
+            "directory": {
+                "name": "/Archives/edgar/data/320193/000032019323000106",
+                "item": items,
+            }
+        }
+
+    def test_picks_primary_document_by_type(self, monkeypatch):
+        """fetch_10k_html prefers the .htm whose ``type`` field equals "10-K"."""
+        monkeypatch.setenv("SEC_USER_AGENT", "Test User test@example.com")
+
+        items = [
+            {"name": "filing-index.htm", "type": "", "size": "5000"},
+            {"name": "exhibit99.htm", "type": "EX-99.1", "size": "200000"},
+            {"name": "aapl-20230930.htm", "type": "10-K", "size": "1500000"},
+            {"name": "R1.htm", "type": "", "size": "8000"},
+        ]
+        index_payload = self._index_payload(items)
+        html_body = "<html><body>10-K content of Apple</body></html>"
+
+        captured_urls: list[str] = []
+
+        def _mock_get(url, **kwargs):
+            captured_urls.append(url)
+            if url.endswith("index.json"):
+                return _make_response(index_payload)
+            if url.endswith("aapl-20230930.htm"):
+                return self._make_text_response(html_body)
+            return _make_response({"error": "not found"}, status=404)
+
+        with patch("requests.get", side_effect=_mock_get), patch("time.sleep"):
+            from agents._edgar_client import fetch_10k_html
+
+            result = fetch_10k_html("0000320193", "0000320193-23-000106")
+
+        assert result == html_body
+        # Two GETs: index.json then primary document.
+        assert len(captured_urls) == 2
+        assert captured_urls[0].endswith(
+            "/Archives/edgar/data/320193/000032019323000106/index.json"
+        )
+        assert captured_urls[1].endswith(
+            "/Archives/edgar/data/320193/000032019323000106/aapl-20230930.htm"
+        )
+
+    def test_fallback_to_largest_htm(self, monkeypatch):
+        """If no item has ``type=='10-K'``, pick the largest non-index .htm."""
+        monkeypatch.setenv("SEC_USER_AGENT", "Test User test@example.com")
+
+        items = [
+            # No item has the 10-K type — exercise the size fallback.
+            {"name": "filing-index.htm", "type": "", "size": "5000"},
+            {"name": "small-exhibit.htm", "type": "", "size": "10000"},
+            {"name": "primary-doc.htm", "type": "", "size": "1200000"},
+            {"name": "R5.htm", "type": "", "size": "9999999"},  # excluded
+        ]
+        index_payload = self._index_payload(items)
+        html_body = "<html><body>fallback primary</body></html>"
+
+        def _mock_get(url, **kwargs):
+            if url.endswith("index.json"):
+                return _make_response(index_payload)
+            if url.endswith("primary-doc.htm"):
+                return self._make_text_response(html_body)
+            return _make_response({"error": "not found"}, status=404)
+
+        with patch("requests.get", side_effect=_mock_get), patch("time.sleep"):
+            from agents._edgar_client import fetch_10k_html
+
+            result = fetch_10k_html("320193", "0000320193-23-000106")
+
+        assert result == html_body
+
+    def test_no_primary_document_raises(self, monkeypatch):
+        """If the index has no usable .htm at all, fetch_10k_html raises."""
+        monkeypatch.setenv("SEC_USER_AGENT", "Test User test@example.com")
+
+        # Only PDFs and XML — no HTML primary document.
+        items = [
+            {"name": "filing.pdf", "type": "", "size": "100000"},
+            {"name": "data.xml", "type": "", "size": "50000"},
+        ]
+        index_payload = self._index_payload(items)
+
+        def _mock_get(url, **kwargs):
+            if url.endswith("index.json"):
+                return _make_response(index_payload)
+            return _make_response({"error": "not found"}, status=404)
+
+        with patch("requests.get", side_effect=_mock_get), patch("time.sleep"):
+            from agents._edgar_client import fetch_10k_html
+
+            with pytest.raises(RuntimeError, match="primary HTML document"):
+                fetch_10k_html("0000320193", "0000320193-23-000106")
+
+    def test_rate_limit_sleep_is_respected(self, monkeypatch):
+        """fetch_10k_html sleeps the configured rate-limit before each GET."""
+        monkeypatch.setenv("SEC_USER_AGENT", "Test User test@example.com")
+
+        items = [{"name": "primary.htm", "type": "10-K", "size": "1000"}]
+        index_payload = self._index_payload(items)
+        html_body = "<html>x</html>"
+
+        def _mock_get(url, **kwargs):
+            if url.endswith("index.json"):
+                return _make_response(index_payload)
+            return self._make_text_response(html_body)
+
+        sleep_calls: list[float] = []
+
+        def _mock_sleep(secs: float):
+            sleep_calls.append(secs)
+
+        with patch("requests.get", side_effect=_mock_get), \
+             patch("time.sleep", side_effect=_mock_sleep):
+            from agents._edgar_client import fetch_10k_html
+
+            fetch_10k_html("0000320193", "0000320193-23-000106")
+
+        # At least two 0.15s sleeps (one per GET). Other test fixtures may
+        # introduce extra sleeps but the rate-limit value should appear.
+        rate_limit_sleeps = [s for s in sleep_calls if abs(s - 0.15) < 1e-9]
+        assert len(rate_limit_sleeps) >= 2, (
+            f"Expected at least two 0.15s sleeps (one per GET), got {sleep_calls!r}"
+        )
+
+    def test_empty_accession_raises(self):
+        """fetch_10k_html('0000320193', '') must reject empty accession."""
+        from agents._edgar_client import fetch_10k_html
+
+        with pytest.raises(ValueError, match="accession"):
+            fetch_10k_html("0000320193", "")
+
+
 class TestMissingUserAgent:
     def test_missing_user_agent_raises(self, monkeypatch):
         """fetch_submissions must raise RuntimeError when SEC_USER_AGENT is unset."""

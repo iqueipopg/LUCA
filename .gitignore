@@ -24,6 +24,9 @@ logs/
 data/gold_standard.json
 data/raw_filings/
 
+# HTML cache de 10-Ks descargados por L1 (reproducible desde EDGAR)
+data/cache/
+
 # IDE
 .vscode/
 .idea/
