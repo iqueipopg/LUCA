@@ -1,0 +1,159 @@
+"""Shared pytest fixtures for the LUCA test suite.
+
+All fixtures here are available to every test module without explicit import.
+Network calls (EDGAR, Ollama) are always mocked — no test should touch real
+infrastructure.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+
+_FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
+
+
+# ---------------------------------------------------------------------------
+# Data fixtures (loaded from disk)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def companyfacts_aapl() -> dict[str, Any]:
+    """Return the trimmed Apple companyfacts dict (from the local fixture).
+
+    Session-scoped because the fixture is read-only and large-ish.
+    """
+    path = _FIXTURES_DIR / "companyfacts_AAPL.json"
+    with path.open("r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+@pytest.fixture(scope="session")
+def submissions_aapl() -> dict[str, Any]:
+    """Return the Apple submissions dict (from the local fixture)."""
+    path = _FIXTURES_DIR / "submissions_AAPL.json"
+    with path.open("r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+@pytest.fixture(scope="session")
+def company_tickers() -> dict[str, Any]:
+    """Return the company tickers fixture dict."""
+    path = _FIXTURES_DIR / "company_tickers.json"
+    with path.open("r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+@pytest.fixture(scope="session")
+def sample_10k_html() -> str:
+    """Return the sample 10-K HTML string (from the local fixture)."""
+    path = _FIXTURES_DIR / "sample_10k.html"
+    return path.read_text(encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# Ollama mock
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def mock_ollama_chat():
+    """Patch ``ollama.Client.chat`` to return a configurable fake response.
+
+    Returns a ``MagicMock`` whose return value can be changed per-test:
+
+        def test_something(mock_ollama_chat):
+            mock_ollama_chat.return_value = {"message": {"content": '{"key": "val"}'}}
+            ...
+
+    By default it returns ``{"message": {"content": "mock response"}}``.
+    """
+    default_response = {"message": {"content": "mock response"}}
+    with patch("ollama.Client.chat", return_value=default_response) as mock:
+        yield mock
+
+
+# ---------------------------------------------------------------------------
+# EDGAR requests mock
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def mock_edgar_get(companyfacts_aapl, submissions_aapl, company_tickers):
+    """Patch ``requests.get`` to serve local fixtures based on URL.
+
+    URL routing:
+    - ``/files/company_tickers.json`` → ``company_tickers`` fixture
+    - ``/companyfacts/CIK0000320193.json`` → ``companyfacts_aapl`` fixture
+    - ``/submissions/CIK0000320193.json`` → ``submissions_aapl`` fixture
+
+    Returns a ``MagicMock``; callers can inspect ``.call_args_list`` etc.
+    """
+
+    def _side_effect(url: str, **kwargs):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.raise_for_status = MagicMock()
+
+        if "company_tickers.json" in url:
+            mock_resp.json.return_value = company_tickers
+        elif "CIK0000320193.json" in url and "companyfacts" in url:
+            mock_resp.json.return_value = companyfacts_aapl
+        elif "CIK0000320193.json" in url and "submissions" in url:
+            mock_resp.json.return_value = submissions_aapl
+        else:
+            mock_resp.status_code = 404
+            mock_resp.raise_for_status.side_effect = Exception(f"404 for {url}")
+
+        return mock_resp
+
+    with patch("requests.get", side_effect=_side_effect) as mock:
+        yield mock
+
+
+# ---------------------------------------------------------------------------
+# Logging / tmp directory fixture
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def tmp_logs_dir(tmp_path, monkeypatch):
+    """Redirect log file output to a temp dir and set log level to DEBUG.
+
+    Prevents tests from writing to ``logs/luca.log`` in the project root and
+    avoids cross-test handler pollution by clearing the ``_CACHE`` in
+    ``agents._config`` after each test.
+    """
+    # Point log file to tmp
+    log_file = tmp_path / "luca_test.log"
+    monkeypatch.setenv("LUCA_LOG_LEVEL", "DEBUG")
+
+    # Patch the log path resolution inside _logging so the file handler
+    # writes to tmp_path instead of the project logs/ dir.
+    import agents._logging as _logging_mod
+    monkeypatch.setattr(
+        _logging_mod,
+        "_resolve_log_path",
+        lambda _: log_file,
+    )
+
+    yield tmp_path
+
+    # After the test: close and remove all handlers on loggers that were
+    # created during the test, so the next test starts clean.
+    import logging
+    for name, logger in list(logging.Logger.manager.loggerDict.items()):
+        if isinstance(logger, logging.Logger):
+            for handler in list(logger.handlers):
+                if getattr(handler, "_luca_managed", False):
+                    handler.close()
+                    logger.removeHandler(handler)
