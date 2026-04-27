@@ -663,3 +663,390 @@ class TestExtractAccessionPropagation:
         revenue = result["metrics"]["revenue"]
         assert revenue is not None
         assert revenue["accession"] is None
+
+
+# ---------------------------------------------------------------------------
+# T1.6 — Fixtures reales multi-empresa (MSFT, JPM)
+# ---------------------------------------------------------------------------
+
+
+class TestExtractMsftFixture:
+    """Tests sobre el fixture real de Microsoft Corporation (CIK 0000789019).
+
+    Caso "tech moderno" con fiscal year Jul→Jun. Valida:
+    - revenue resuelve por RevenueFromContractWithCustomerExcludingAssessedTax
+      (ASC 606) porque ese tag tiene el hecho mas reciente (end 2025-06-30)
+      aunque Revenues tambien exista con un hecho anual de FY2008.
+    - total_equity cae a StockholdersEquity porque el fixture no contiene
+      el tag NCI (StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest).
+      Microsoft no reporta NCI material; ambos tags publican el mismo valor.
+    - fiscal year no-calendario (Juni): period_end termina en -06-30.
+    """
+
+    def test_msft_extracts_six_metrics_with_recent_fy(self, companyfacts_msft):
+        """extract() con el fixture MSFT debe poblar las 6 metricas con valor
+        numerico, todas del mismo FY reciente, y todos los tag_used documentados.
+
+        Valores esperados (FY2025, period_end 2025-06-30):
+          revenue     : 281_724_000_000  tag RevenueFromContractWithCustomerExcludingAssessedTax
+          net_income  : 101_832_000_000  tag NetIncomeLoss
+          operating_income : 128_528_000_000  tag OperatingIncomeLoss
+          total_assets: 619_003_000_000  tag Assets
+          total_equity: 343_479_000_000  tag StockholdersEquity (no NCI en fixture)
+          eps_diluted :          13.64   tag EarningsPerShareDiluted
+        """
+        from agents.agent3_extractor import extract
+
+        result = extract(
+            _make_ingest(
+                xbrl_data=companyfacts_msft,
+                company="Microsoft Corporation",
+                ticker="MSFT",
+            )
+        )
+
+        assert set(result["metrics"].keys()) == set(GOLD_METRICS)
+
+        for metric in GOLD_METRICS:
+            entry = result["metrics"][metric]
+            assert entry is not None, f"{metric} no debe ser None para MSFT"
+            assert isinstance(entry["value"], float), (
+                f"{metric} value debe ser float, fue {type(entry['value']).__name__}"
+            )
+            assert entry["tag_used"], f"{metric} debe registrar tag_used"
+            assert entry["period_end"], f"{metric} debe registrar period_end"
+            assert entry["unit"] in {"USD", "USD/shares"}
+
+        # Fiscal year no-calendario: periodo termina en junio
+        for metric in GOLD_METRICS:
+            assert result["metrics"][metric]["period_end"].endswith("-06-30"), (
+                f"MSFT {metric}: period_end debe ser fin de junio (fiscal year Jul-Jun), "
+                f"fue {result['metrics'][metric]['period_end']!r}"
+            )
+
+        assert isinstance(result["fiscal_year"], int)
+        assert result["fiscal_year"] == 2025
+
+        # Valores concretos — leidos del fixture real
+        rev = result["metrics"]["revenue"]
+        assert rev["value"] == 281_724_000_000.0
+        assert rev["fiscal_year"] == 2025
+
+        ni = result["metrics"]["net_income"]
+        assert ni["value"] == 101_832_000_000.0
+
+        oi = result["metrics"]["operating_income"]
+        assert oi["value"] == 128_528_000_000.0
+
+        ta = result["metrics"]["total_assets"]
+        assert ta["value"] == 619_003_000_000.0
+
+        te = result["metrics"]["total_equity"]
+        assert te["value"] == 343_479_000_000.0
+
+        eps = result["metrics"]["eps_diluted"]
+        assert eps["value"] == 13.64
+
+    def test_msft_revenue_uses_asc606_tag(self, companyfacts_msft):
+        """revenue para MSFT debe resolver con el tag ASC 606, no con el
+        tag legacy Revenues, aunque este exista en el fixture con un hecho
+        anual de FY2008.
+
+        La seleccion T1.5 (mas reciente a lo largo de TODA la cadena) elige
+        RevenueFromContractWithCustomerExcludingAssessedTax (end 2025-06-30)
+        sobre Revenues (end 2008-06-30). Informacion relevante para T1.10:
+        Microsoft es un ejemplo de filer que publica ambos tags en EDGAR,
+        con el legacy solo cubriendo el historial pre-ASC-606.
+        """
+        from agents.agent3_extractor import extract
+
+        result = extract(_make_ingest(xbrl_data=companyfacts_msft, ticker="MSFT"))
+
+        rev = result["metrics"]["revenue"]
+        assert rev is not None
+        assert rev["tag_used"] == "RevenueFromContractWithCustomerExcludingAssessedTax"
+        assert rev["period_end"] == "2025-06-30"
+        assert rev["fiscal_year"] == 2025
+
+    def test_msft_total_equity_tag_used(self, companyfacts_msft):
+        """total_equity para MSFT debe usar StockholdersEquity (fallback) porque
+        el fixture no contiene el tag NCI preferente.
+
+        Informacion relevante para T1.10: Microsoft no tiene subsidiarias
+        con participaciones no controladoras (NCI) significativas, por lo que
+        EDGAR no etiqueta StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest
+        con datos recientes. El extractor degrada al fallback correctamente —
+        no es un fallo, es el comportamiento esperado para filers sin NCI.
+
+        El reorden de total_equity (NCI primero segun review 
+        2026-04-27) no afecta negativamente a MSFT porque el tag NCI simplemente
+        no tiene hechos recientes: el fallback StockholdersEquity gana por
+        recencia bajo T1.5.
+        """
+        from agents.agent3_extractor import extract
+
+        result = extract(_make_ingest(xbrl_data=companyfacts_msft, ticker="MSFT"))
+
+        te = result["metrics"]["total_equity"]
+        assert te is not None
+        # NCI tag ausente en fixture MSFT -> fallback correcto
+        assert te["tag_used"] == "StockholdersEquity"
+        assert te["value"] == 343_479_000_000.0
+        assert te["period_end"] == "2025-06-30"
+
+
+class TestExtractJpmFixture:
+    """Tests sobre el fixture real de JPMorgan Chase & Co. (CIK 0000019617).
+
+    Caso "banco comercial" (SIC 6022). Valida comportamientos especificos
+    de la arquitectura financiera bancaria bajo US-GAAP:
+    - operating_income: OperatingIncomeLoss ausente en EDGAR para bancos
+      → None. Esto NO es fallo del extractor; es decision de diseño
+      documentada y avalada (2026-04-27). Los bancos
+      no reportan OperatingIncomeLoss como linea consolidada bajo US-GAAP.
+    - revenue: JPM etiqueta la linea de ingresos como Revenues (no solo
+      InterestAndDividendIncomeOperating). El tag primario de la cadena
+      resuelve con datos recientes (FY2025). El fallback bancario
+      InterestAndDividendIncomeOperating esta presente pero solo con
+      datos de 2009-2011, por lo que Revenues gana por recencia (T1.5).
+    - total_equity: NCI tag presente pero solo con datos hasta 2015;
+      StockholdersEquity tiene datos hasta 2025 y gana por recencia.
+    """
+
+    def test_jpm_operating_income_is_none_when_tag_absent(self, companyfacts_jpm):
+        """operating_income debe ser None para JPM porque OperatingIncomeLoss
+        no aparece en el companyfacts de EDGAR para bancos comerciales.
+
+        NOTA: esto NO es un fallo del extractor L3. Es una decision de diseno
+        consciente avalada por la revision de  (2026-04-27):
+        los bancos bajo US-GAAP no reportan OperatingIncomeLoss como elemento
+        XBRL a nivel consolidado; el concepto de "ingreso operativo" en banca
+        se calcula de forma diferente (net interest income + non-interest income
+        menos provision for credit losses) y no tiene un tag estandarizado en
+        la taxonomia FASB. LUCA devuelve None para esta metrica en bancos y lo
+        documenta en T1.10 como limitacion conocida del pipeline para SIC 6022.
+        """
+        from agents.agent3_extractor import extract
+
+        result = extract(
+            _make_ingest(
+                xbrl_data=companyfacts_jpm,
+                company="JPMorgan Chase & Co.",
+                ticker="JPM",
+            )
+        )
+
+        assert result["metrics"]["operating_income"] is None, (
+            "operating_income debe ser None para JPM: OperatingIncomeLoss "
+            "no existe en EDGAR companyfacts para bancos (SIC 6022)"
+        )
+
+        # Las demas metricas si deben resolverse
+        for metric in ("revenue", "net_income", "total_assets", "total_equity", "eps_diluted"):
+            assert result["metrics"][metric] is not None, (
+                f"{metric} no debe ser None para JPM"
+            )
+
+    def test_jpm_revenue_uses_revenues_tag_not_bank_fallback(self, companyfacts_jpm):
+        """revenue para JPM debe resolver con el tag primario Revenues, NO con
+        el fallback bancario InterestAndDividendIncomeOperating.
+
+        El fixture real de JPM muestra que JPM etiqueta sus ingresos totales
+        como Revenues en EDGAR (FY2025, end 2025-12-31, val ~182.4B USD).
+        El tag InterestAndDividendIncomeOperating tambien existe pero solo con
+        datos de 2009-2011 (end maximo 2011-12-31), por lo que pierde por
+        recencia bajo T1.5.
+
+        Informacion relevante para T1.10: Revenues en JPM representa el "Net
+        Revenue" reportado en el income statement bancario (net interest income
+        + non-interest revenue), NO solo los ingresos por intereses. La
+        cadena de candidatos funciona correctamente para JPM porque la
+        empresa si etiqueta la linea de ingresos como Revenues.
+
+        Si JPM dejara de usar Revenues en el futuro, el fallback bancario
+        InterestAndDividendIncomeOperating actuaria como red de seguridad
+        con la caveta de subestimacion documentada en el modulo.
+        """
+        from agents.agent3_extractor import extract
+
+        result = extract(
+            _make_ingest(
+                xbrl_data=companyfacts_jpm,
+                company="JPMorgan Chase & Co.",
+                ticker="JPM",
+            )
+        )
+
+        rev = result["metrics"]["revenue"]
+        assert rev is not None
+        assert rev["tag_used"] == "Revenues", (
+            f"JPM revenue debe usar tag Revenues, fue {rev['tag_used']!r}"
+        )
+        assert rev["period_end"] == "2025-12-31"
+        assert rev["fiscal_year"] == 2025
+        assert rev["value"] == 182_447_000_000.0
+
+    def test_jpm_total_equity_falls_back_to_stockholders_equity(self, companyfacts_jpm):
+        """total_equity para JPM debe usar StockholdersEquity aunque el tag NCI
+        preferente exista en el fixture — porque los datos NCI son de 2015.
+
+        El fixture de JPM contiene
+        StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest
+        (el preferente) pero solo con hechos hasta end=2015-12-31. El tag
+        StockholdersEquity tiene hechos hasta end=2025-12-31. T1.5 elige
+        el mas reciente → StockholdersEquity gana.
+
+        Informacion para T1.10: el tag NCI de JPM desaparecio de las 10-K
+        post-2015, probablemente porque JPM reorganizo su estructura de NCI.
+        El extractor degrada correctamente al fallback sin necesitar logica
+        especial para este caso.
+        """
+        from agents.agent3_extractor import extract
+
+        result = extract(
+            _make_ingest(
+                xbrl_data=companyfacts_jpm,
+                company="JPMorgan Chase & Co.",
+                ticker="JPM",
+            )
+        )
+
+        te = result["metrics"]["total_equity"]
+        assert te is not None
+        assert te["tag_used"] == "StockholdersEquity", (
+            f"JPM total_equity debe usar StockholdersEquity (NCI tag obsoleto), "
+            f"fue {te['tag_used']!r}"
+        )
+        assert te["value"] == 362_438_000_000.0
+        assert te["period_end"] == "2025-12-31"
+
+
+# ---------------------------------------------------------------------------
+# T1.6 — Cobertura con fixtures sinteticos (edge cases no cubiertos por AAPL)
+# ---------------------------------------------------------------------------
+
+
+class TestExtractSyntheticEdgeCases:
+    """Tests de edge cases con datos sinteticos inline.
+
+    No requieren EDGAR; se construyen con dicts directamente en el test.
+    Cubren rutas que AAPL/MSFT/JPM no ejercitan.
+    """
+
+    def test_currency_other_than_usd_returns_none(self):
+        """Una metrica cuyos hechos estan SOLO en EUR (no USD) debe devolver
+        None. LUCA Sprint 1 es USD-only y no intenta conversion FX.
+
+        Distingue del test existente TestExtractWrongCurrency porque ese
+        usa el API de alto nivel extract(); este verifica explicitamente
+        que la decision se aplica cuando TODOS los candidatos del chain
+        estan en EUR (no solo el primario).
+        """
+        from agents.agent3_extractor import extract
+
+        # Todos los candidatos de revenue en EUR, ninguno en USD
+        eur_fact = {
+            "start": "2024-01-01",
+            "end": "2024-12-31",
+            "val": 50_000_000_000,
+            "accn": "0099999999-24-000001",
+            "fy": 2024,
+            "fp": "FY",
+            "form": "10-K",
+            "filed": "2025-03-01",
+        }
+        xbrl = {
+            "facts": {
+                "us-gaap": {
+                    tag: {"label": tag, "units": {"EUR": [eur_fact]}}
+                    for tag in (
+                        "Revenues",
+                        "RevenueFromContractWithCustomerExcludingAssessedTax",
+                        "SalesRevenueNet",
+                        "InterestAndDividendIncomeOperating",
+                    )
+                },
+            },
+        }
+
+        result = extract(
+            _make_ingest(
+                xbrl_data=xbrl,
+                company="European Filer S.A.",
+                ticker="EURF",
+            )
+        )
+
+        assert result["metrics"]["revenue"] is None, (
+            "revenue debe ser None cuando todos los candidatos estan solo en EUR"
+        )
+
+    def test_quarterly_facts_are_excluded_when_only_quarters_exist(self):
+        """Una metrica cuyos unicos hechos tienen fp distinto de 'FY' debe
+        devolver None aunque form=='10-K'.
+
+        Caso limite: un hecho con fp='Q4' incluido en una 10-K (EDGAR lo
+        hace para algunos comparative quarters). El filtro fp=='FY' debe
+        rechazarlo. La duracion es suficiente (>320 dias) para descartar
+        que sea la duracion quien lo rechace — es el campo fp.
+        """
+        from agents.agent3_extractor import extract
+
+        q4_fact = {
+            "start": "2024-01-01",
+            "end": "2024-12-31",  # duracion 365d, no es el problema
+            "val": 100_000_000,
+            "accn": "0099999999-25-000001",
+            "fy": 2024,
+            "fp": "Q4",   # <-- no es FY; debe ser filtrado
+            "form": "10-K",
+            "filed": "2025-02-01",
+        }
+        xbrl = _wrap_us_gaap({"Revenues": {"USD": [q4_fact]}})
+
+        result = extract(_make_ingest(xbrl_data=xbrl))
+
+        assert result["metrics"]["revenue"] is None, (
+            "revenue debe ser None: el unico hecho tiene fp='Q4', no 'FY'"
+        )
+
+    def test_metric_with_no_facts_at_all_returns_none(self):
+        """Una metrica sin ningun hecho en ningun candidato del chain debe
+        devolver None sin lanzar excepciones.
+
+        Verifica que el extractor degrada silenciosamente cuando el
+        bloque us-gaap existe pero ninguno de los tags del chain aparece
+        en el fixture (ej: empresa que solo reporta SIC-especifico).
+        """
+        from agents.agent3_extractor import extract
+
+        # Solo tags irrelevantes presentes (no en _TAG_CANDIDATES de revenue)
+        xbrl = _wrap_us_gaap(
+            {
+                "InterestExpense": {
+                    "USD": [
+                        {
+                            "start": "2024-01-01",
+                            "end": "2024-12-31",
+                            "val": 5_000_000_000,
+                            "accn": "0099999999-25-000001",
+                            "fy": 2024,
+                            "fp": "FY",
+                            "form": "10-K",
+                            "filed": "2025-02-01",
+                        },
+                    ],
+                },
+            }
+        )
+
+        result = extract(_make_ingest(xbrl_data=xbrl))
+
+        assert result["metrics"]["revenue"] is None
+        assert result["metrics"]["net_income"] is None
+        assert result["metrics"]["operating_income"] is None
+        # total_assets usa Assets — tampoco esta presente
+        assert result["metrics"]["total_assets"] is None
+        assert result["metrics"]["total_equity"] is None
+        assert result["metrics"]["eps_diluted"] is None
+        assert result["fiscal_year"] is None

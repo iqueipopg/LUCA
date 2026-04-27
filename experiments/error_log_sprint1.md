@@ -124,3 +124,74 @@ empresa o tag involucrado, y la hipótesis de causa.
   `test_extracted_metric_includes_accession`,
   `test_extracted_metric_accession_is_none_when_absent_in_fact`.
 - **Suite:** 80/80 pasan (era 73/73 antes de T1.5).
+
+---
+
+## 2026-04-27 — T1.6 — MSFT/JPM — Comportamiento real de tags observado con fixtures de EDGAR
+
+- **Tarea:** T1.6 (tests con fixtures reales multi-empresa).
+- **Empresas:** MSFT (CIK 0000789019) y JPM (CIK 0000019617).
+- **Fixtures generados:** `companyfacts_MSFT.json` (13.7 KB) y
+  `companyfacts_JPM.json` (13.6 KB).
+
+### MSFT — tags observados (FY2025, period_end 2025-06-30)
+
+| Métrica | Tag usado | Valor |
+|---|---|---|
+| revenue | `RevenueFromContractWithCustomerExcludingAssessedTax` | 281.7B USD |
+| net_income | `NetIncomeLoss` | 101.8B USD |
+| operating_income | `OperatingIncomeLoss` | 128.5B USD |
+| total_assets | `Assets` | 619.0B USD |
+| total_equity | `StockholdersEquity` (fallback) | 343.5B USD |
+| eps_diluted | `EarningsPerShareDiluted` | 13.64 USD/share |
+
+- `Revenues` existe en el fixture MSFT pero solo con hechos de FY2008
+  (end 2008-06-30). T1.5 elige correctamente `RevenueFromContractWithCustomerExcludingAssessedTax`
+  con end=2025-06-30 por recencia. Comportamiento análogo a AAPL.
+- `StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest`
+  ausente en el fixture MSFT (EDGAR no etiqueta este tag para MSFT porque
+  no hay NCI material). El extractor degrada correctamente al fallback
+  `StockholdersEquity`. El reorden de `total_equity` en la cadena (NCI
+  primero, T1.5) no introduce ningún error para MSFT.
+
+### JPM — tags observados (FY2025, period_end 2025-12-31)
+
+| Métrica | Tag usado | Valor | Nota |
+|---|---|---|---|
+| revenue | `Revenues` | 182.4B USD | Net Revenue (NII + non-interest) |
+| net_income | `NetIncomeLoss` | 57.0B USD | |
+| operating_income | `None` | N/A | OperatingIncomeLoss ausente en EDGAR para SIC 6022 |
+| total_assets | `Assets` | 4.42T USD | |
+| total_equity | `StockholdersEquity` (fallback) | 362.4B USD | NCI tag con datos solo hasta 2015 |
+| eps_diluted | `EarningsPerShareDiluted` | 20.02 USD/share | |
+
+- **Sorpresa respecto a la hipótesis inicial:** JPM sí etiqueta sus ingresos
+  totales como `Revenues` en las 10-K recientes (FY2025: 182.4B USD,
+  representando Net Revenue = NII + non-interest revenue). El fallback
+  bancario `InterestAndDividendIncomeOperating` existe en el fixture pero
+  solo con datos de FY2009-FY2011 (end máximo 2011-12-31); T1.5 lo rechaza
+  por recencia. Conclusión: la cadena de candidates funciona correctamente
+  para JPM; el fallback bancario sería la red de seguridad si JPM dejara
+  de publicar `Revenues`.
+- **`operating_income` es None para JPM:** confirmado. `OperatingIncomeLoss`
+  no aparece en EDGAR companyfacts para bancos (SIC 6022). Es una limitación
+  conocida documentada en `agent3_extractor.py` y cubierta en T1.10.
+- **`total_equity` NCI tag obsoleto:** `StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest`
+  aparece en el fixture JPM pero solo hasta end=2015-12-31 (FY2015). El tag
+  `StockholdersEquity` tiene datos hasta FY2025, gana por recencia. No es un
+  bug del extractor; JPM reorganizó su NCI disclosure tras 2015.
+- **`ProfitLoss` en JPM:** el fixture incluye `ProfitLoss` (fallback de
+  `net_income`) con datos de FY2011-FY2013. `NetIncomeLoss` tiene datos
+  actuales hasta FY2025, gana por recencia sin ningún ajuste especial.
+
+### Impacto en T1.10
+
+La distribución de `tag_used` observada en 3 empresas reales (AAPL, MSFT, JPM):
+- `revenue`: 2/3 usan ASC-606 (`RevenueFromContractWithCustomerExcludingAssessedTax`),
+  1/3 usa `Revenues` (JPM). El fallback bancario `InterestAndDividendIncomeOperating`
+  no fue necesario para ninguna de las 3 empresas en datos recientes.
+- `total_equity`: 3/3 usan `StockholdersEquity` (fallback). El tag NCI
+  preferente no tiene datos recientes en ninguna de las 3 empresas del
+  fixture.
+- `operating_income`: 2/3 resuelven, 1/3 devuelve None (JPM). T1.10 debe
+  anotar esta limitación para SIC 6022.
