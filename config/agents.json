@@ -1,0 +1,53 @@
+{
+  "_note": "Config por agente del pipeline LUCA. Reglas: sin hardcoded en el código, todo thresholds/temperaturas aquí.",
+  "agents": {
+    "L1_ingestion": {
+      "max_retries": 3,
+      "retry_backoff_s": 2,
+      "timeout_s": 30
+    },
+    "L2_parser": {
+      "min_section_chars": 100,
+      "max_section_chars": 200000
+    },
+    "L3_extractor": {
+      "prefer_annual": true,
+      "lookback_years": 5,
+      "currency_default": "USD"
+    },
+    "L4_qualitative": {
+      "model_override": null,
+      "temperature": 0.2,
+      "max_input_chars": 24000,
+      "max_output_tokens": 1500,
+      "chunk_overlap_chars": 500
+    },
+    "L5_analyst": {
+      "risk_categories": ["operational", "financial", "regulatory", "market", "technological", "geopolitical"],
+      "min_risks": 3,
+      "max_risks": 10
+    },
+    "L6_comparables": {
+      "enabled": false,
+      "temperature": 0.3,
+      "max_output_tokens": 1000
+    },
+    "L7_writer": {
+      "temperature_factual": 0.2,
+      "temperature_outlook": 0.5,
+      "max_output_tokens_per_section": 800,
+      "sections": [
+        "executive_summary",
+        "company_overview",
+        "financial_highlights",
+        "risk_analysis",
+        "outlook",
+        "appendix"
+      ]
+    },
+    "L8_explainer": {
+      "excel_columns": 25,
+      "include_citations": true
+    }
+  }
+}

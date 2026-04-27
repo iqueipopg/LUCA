@@ -1,0 +1,57 @@
+# config.yaml — Configuración global de LUCA
+# ZONA SAGRADA: solo el usuario edita este archivo.
+
+# ---------------------------------------------------------------
+# Modelo local (Ollama)
+# ---------------------------------------------------------------
+llm:
+  provider: ollama
+  host: http://localhost:11434
+  model: qwen2.5:7b-instruct-q4_K_M
+  timeout_s: 120
+  retries: 2
+
+# ---------------------------------------------------------------
+# Fuentes de datos
+# ---------------------------------------------------------------
+sources:
+  sec_edgar:
+    base_url: https://data.sec.gov
+    filings_url: https://www.sec.gov/cgi-bin/browse-edgar
+    rate_limit_s: 0.15  # sleep entre requests (~7 req/s, por debajo del límite de 10)
+    user_agent_env: SEC_USER_AGENT  # leído desde .env
+
+  cnmv:
+    enabled: false  # fase 2, opcional
+    base_url: https://www.cnmv.es
+
+# ---------------------------------------------------------------
+# Pipeline
+# ---------------------------------------------------------------
+pipeline:
+  output_dir: outputs
+  memo_dir: outputs/memos
+  explainability_dir: outputs/explainability
+  raw_xlsx_dir: outputs/raw
+
+# Idioma de los outputs
+output_language: es
+
+# ---------------------------------------------------------------
+# Métricas mínimas a extraer en L3
+# ---------------------------------------------------------------
+required_metrics:
+  - revenue
+  - net_income
+  - operating_income
+  - total_assets
+  - total_equity
+  - eps_diluted
+
+# ---------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------
+logging:
+  level: INFO
+  file: logs/luca.log
+  rotation_mb: 10
