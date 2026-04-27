@@ -81,6 +81,42 @@ EXPECTED_UNITS: Final[dict[str, str]] = {
     "eps_diluted": "USD/share",
 }
 
+#: Sentinel string written into the ``value`` cell when a metric is
+#: **structurally** unavailable for a filer (e.g. JPM does not report
+#: ``OperatingIncomeLoss`` because the SIC 6022 banking taxonomy has no
+#: standard tag for it; JNJ chooses not to publish an operating-profit
+#: subtotal). This is **not** the same as "forgot to annotate" — that
+#: case yields a blank cell and is caught by ``validate``. Recognised
+#: case-insensitively. Evaluators must coerce this sentinel to Python
+#: ``None`` before comparing against extractor outputs.
+NULL_SENTINEL: Final[str] = "null"
+
+
+def coerce_gold_value(raw: object) -> float | None:
+    """Normalise a raw cell from the gold-standard ``value`` column.
+
+    Args:
+        raw: The cell value as returned by openpyxl.
+
+    Returns:
+        ``None`` if the cell holds the :data:`NULL_SENTINEL` (e.g. for a
+        metric that is structurally absent for that filer); otherwise a
+        ``float`` for any numeric value.
+
+    Raises:
+        ValueError: When ``raw`` is neither numeric nor the recognised
+            sentinel — that signals a gold-standard cell that the
+            evaluator should not silently interpret as "missing".
+    """
+    if isinstance(raw, str) and raw.strip().lower() == NULL_SENTINEL:
+        return None
+    if isinstance(raw, bool):
+        # bool is a subclass of int — explicitly reject.
+        raise ValueError(f"Valor de gold standard no esperado: {raw!r}")
+    if isinstance(raw, (int, float)):
+        return float(raw)
+    raise ValueError(f"Valor de gold standard no esperado: {raw!r}")
+
 
 __all__ = [
     "GOLD_TICKERS",
@@ -88,4 +124,6 @@ __all__ = [
     "GOLD_COLUMNS",
     "GOLD_ROW_COUNT",
     "EXPECTED_UNITS",
+    "NULL_SENTINEL",
+    "coerce_gold_value",
 ]

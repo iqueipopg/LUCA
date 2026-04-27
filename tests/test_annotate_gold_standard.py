@@ -373,6 +373,149 @@ class TestValidateUnits:
 
 
 # ---------------------------------------------------------------------------
+# Encoding conventions surfaced during T1.2 (annotation of the 10 tickers)
+#
+# Two real-world annotation conventions adopted by the user:
+#   * ``source_page`` as a statement-name string (e.g. "CONSOLIDATED
+#     STATEMENTS OF OPERATIONS") instead of a PDF page number.
+#   * ``value == "null"`` (NULL_SENTINEL) for metrics that are
+#     **structurally** absent for a filer (JPM operating_income because
+#     SIC 6022 lacks ``OperatingIncomeLoss``; JNJ operating_income
+#     because the company chooses not to publish that subtotal).
+# ---------------------------------------------------------------------------
+
+
+class TestEncodingConventions:
+    def _seed_skeleton(
+        self,
+        tmp_path: Path,
+        annotate_module: ModuleType,
+    ) -> Path:
+        path = tmp_path / "gold.xlsx"
+        annotate_module.init_workbook(path)
+        return path
+
+    def test_validate_accepts_source_page_as_statement_name(
+        self, tmp_path: Path, annotate_module: ModuleType
+    ) -> None:
+        """A statement-name string in ``source_page`` is a valid
+        annotation (more useful than PDF page numbers, which shift
+        across filings).
+        """
+        path = self._seed_skeleton(tmp_path, annotate_module)
+
+        wb = load_workbook(path)
+        sheet = wb[annotate_module.SHEET_NAME]
+        _write_row(
+            sheet,
+            2,
+            ticker="AAPL",
+            metric="revenue",
+            fiscal_year=2025,
+            value=391_035_000_000,
+            unit="USD",
+            source_page="CONSOLIDATED STATEMENTS OF OPERATIONS",
+            notes="anotado a mano",
+        )
+        wb.save(path)
+
+        report = annotate_module.validate_workbook(path)
+
+        row2_issues = [i for i in report.issues if i.excel_row == 2]
+        assert row2_issues == [], (
+            f"source_page como nombre de statement debe validar, fue {row2_issues!r}"
+        )
+        assert report.invalid_rows == 0
+
+    def test_validate_accepts_null_sentinel_for_structurally_absent_metric(
+        self, tmp_path: Path, annotate_module: ModuleType
+    ) -> None:
+        """``value == "null"`` is the sentinel for structurally absent
+        metrics (JPM operating_income, JNJ operating_income). Validate
+        must accept it as a complete annotation, distinct from a blank
+        value cell.
+        """
+        path = self._seed_skeleton(tmp_path, annotate_module)
+
+        wb = load_workbook(path)
+        sheet = wb[annotate_module.SHEET_NAME]
+        _write_row(
+            sheet,
+            2,
+            ticker="JPM",
+            metric="operating_income",
+            fiscal_year=2025,
+            value="null",
+            unit="USD",
+            source_page="CONSOLIDATED STATEMENTS OF INCOME",
+            notes="JPM (SIC 6022) no publica OperatingIncomeLoss bajo US-GAAP",
+        )
+        wb.save(path)
+
+        report = annotate_module.validate_workbook(path)
+
+        row2_issues = [i for i in report.issues if i.excel_row == 2]
+        assert row2_issues == [], (
+            f"value='null' (sentinel) debe validar, fue {row2_issues!r}"
+        )
+        assert report.invalid_rows == 0
+
+    def test_validate_null_sentinel_is_case_insensitive(
+        self, tmp_path: Path, annotate_module: ModuleType
+    ) -> None:
+        """``"NULL"`` and ``"Null"`` are accepted equivalently to ``"null"``.
+        Lenient with the user typing in different cases."""
+        path = self._seed_skeleton(tmp_path, annotate_module)
+
+        wb = load_workbook(path)
+        sheet = wb[annotate_module.SHEET_NAME]
+        _write_row(
+            sheet, 2,
+            ticker="JPM", metric="operating_income",
+            fiscal_year=2025, value="NULL", unit="USD",
+            source_page="CONSOLIDATED STATEMENTS OF INCOME",
+            notes="caso límite de mayúsculas",
+        )
+        _write_row(
+            sheet, 3,
+            ticker="JNJ", metric="operating_income",
+            fiscal_year=2024, value="Null", unit="USD",
+            source_page="CONSOLIDATED STATEMENTS OF EARNINGS",
+            notes="otra variante de mayúsculas",
+        )
+        wb.save(path)
+
+        report = annotate_module.validate_workbook(path)
+
+        for row in (2, 3):
+            row_issues = [i for i in report.issues if i.excel_row == row]
+            assert row_issues == [], f"fila {row} con sentinel debe validar"
+
+    def test_coerce_gold_value_normalises_sentinel_to_none(self) -> None:
+        """The helper ``coerce_gold_value`` returns ``None`` for the
+        sentinel and a ``float`` for numeric inputs. This is the
+        contract T1.8 / T1.9 evaluators must rely on when loading the
+        gold standard.
+        """
+        from agents._gold_schema import coerce_gold_value
+
+        assert coerce_gold_value("null") is None
+        assert coerce_gold_value("NULL") is None
+        assert coerce_gold_value("  Null  ") is None  # con espacios
+        assert coerce_gold_value(391_035_000_000) == 391_035_000_000.0
+        assert coerce_gold_value(6.13) == 6.13
+
+        # Cualquier otro string debe romper en lugar de devolver None
+        # silenciosamente (eso enmascararía un error de anotación).
+        with pytest.raises(ValueError):
+            coerce_gold_value("foo")
+        with pytest.raises(ValueError):
+            coerce_gold_value(None)
+        with pytest.raises(ValueError):
+            coerce_gold_value(True)
+
+
+# ---------------------------------------------------------------------------
 # main() / CLI exit codes
 # ---------------------------------------------------------------------------
 

@@ -66,6 +66,7 @@ from agents._gold_schema import (  # noqa: E402  (path tweak above)
     GOLD_METRICS,
     GOLD_ROW_COUNT,
     GOLD_TICKERS,
+    NULL_SENTINEL,
 )
 
 # ---------------------------------------------------------------------------
@@ -323,10 +324,18 @@ def _validate_row(
         elif not (_FY_MIN <= fy_int <= _FY_MAX):
             add(f"'fiscal_year' fuera de rango razonable: {fy_int}")
 
-    # --- value: numeric (int or float) -----------------------------------
+    # --- value: numeric (int or float) or NULL_SENTINEL ------------------
+    # The string sentinel ``"null"`` (case-insensitive) is the convention
+    # for metrics that are *structurally* absent for a filer (e.g. JPM
+    # does not publish ``OperatingIncomeLoss``, JNJ does not present an
+    # operating-profit subtotal). Different from "blank cell" which is
+    # caught above as "falta 'value'".
     val = by_name["value"]
     if _is_blank(val):
         add("falta 'value'")
+    elif isinstance(val, str) and val.strip().lower() == NULL_SENTINEL:
+        # Sentinel accepted — metric structurally absent.
+        pass
     elif not isinstance(val, (int, float)) or isinstance(val, bool):
         # bool is a subclass of int — explicitly reject it.
         add(f"'value' no es numérico: {val!r}")
@@ -349,14 +358,23 @@ def _validate_row(
                 f"encontrado {unit!r}"
             )
 
-    # --- source_page: int -------------------------------------------------
+    # --- source_page: int ≥ 1 or non-empty statement name ----------------
+    # Accepts both:
+    #   * an integer page number (original convention), e.g. ``42``;
+    #   * a statement-name string (the more common convention adopted by
+    #     the user when annotating, e.g. ``"CONSOLIDATED STATEMENTS OF
+    #     OPERATIONS"``). Statement names are more stable than PDF
+    #     pagination because pages shift across filings.
     sp = by_name["source_page"]
     if _is_blank(sp):
         add("falta 'source_page'")
+    elif isinstance(sp, str):
+        # Non-empty string is fine — already filtered by _is_blank.
+        pass
     else:
         sp_int = _coerce_int(sp)
         if sp_int is None:
-            add(f"'source_page' no es entero: {sp!r}")
+            add(f"'source_page' no es entero ni texto: {sp!r}")
         elif sp_int < 1:
             add(f"'source_page' debe ser >= 1: {sp_int}")
 
