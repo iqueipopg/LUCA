@@ -22,21 +22,38 @@ Pipeline de 8 agentes L1→L8, enfoque híbrido (XBRL programático para número
 
 ```
 luca/
-├── README.md                    # Este archivo
-├── INSTALL.md                   # Setup paso a paso
-├── las reglas del proyecto                    # Contexto y reglas del proyecto
-├── ARCHITECTURE.md              # Diseño del pipeline
-├── SPRINT_PLAN.md               # Planificación de sprints
-│   ├── settings.json            # Config compartida (commiteada)
-│   ├── settings.local.json      # Config local (no commiteada, ver template)
-│   └── mcp.json                 # Servidores MCP
+├── README.md                         # Este archivo
+├── INSTALL.md                        # Setup paso a paso
+├── las reglas del proyecto                         # Contexto y reglas del proyecto
+├── ARCHITECTURE.md                   # Diseño del pipeline
+├── SPRINT_PLAN.md                    # Planificación de sprints
+├── run_pipeline.py                   # CLI orquestador L1→L2 (Sprint 0)
+│   ├── settings.json                 # Config compartida (commiteada)
+│   ├── settings.local.json           # Config local (no commiteada)
+│   └── mcp.json                      # Servidores MCP
 ├── config/
-│   └── agents.json              # Config de los agentes del pipeline LUCA
-├── config.yaml                  # Config global del pipeline
+│   └── agents.json                   # Config de los agentes del pipeline LUCA
+├── config.yaml                       # Config global del pipeline
 ├── data/
-│   └── gold_standard_template.json  # Template de anotación manual
-├── skills/                      # Skills de dominio (SEC, XBRL, LLM local)
-└── requirements.txt             # Dependencias Python
+│   └── gold_standard_template.json   # Template de anotación manual
+├── skills/                           # Skills de dominio (SEC, XBRL, LLM local)
+│   ├── sec-edgar/                    # Interfaz a SEC EDGAR API
+│   ├── xbrl-parsing/                 # Parseo y extracción XBRL
+│   └── local-llm/                    # Cliente Ollama/Qwen
+├── agents/                           # Código del pipeline L1→L8
+│   ├── _logging.py                   # Logging centralizado
+│   ├── _config.py                    # Carga de configuración
+│   ├── _llm_client.py                # Cliente LLM local
+│   ├── _edgar_client.py              # Cliente SEC EDGAR
+│   ├── agent1_ingestion.py           # L1: Descarga de documentos
+│   └── agent2_parser.py              # L2: Parsing y segmentación
+├── tests/                            # Tests unitarios e integración
+│   ├── fixtures/                     # Datos de prueba (mocks EDGAR, HTML)
+│   ├── _generate_companyfacts.py     # Script de regeneración de fixtures
+│   └── test_agent*.py                # Tests por agente
+├── experiments/                      # Exploraciones y pruebas ad-hoc
+├── scripts/                          # Utilidades (evaluación, conversión, etc.)
+└── requirements.txt                  # Dependencias Python
 ```
 
 ## Narrativa del proyecto
