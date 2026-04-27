@@ -57,10 +57,35 @@ GOLD_COLUMNS: Final[tuple[str, ...]] = (
 #: (ticker, metric) pair).
 GOLD_ROW_COUNT: Final[int] = len(GOLD_TICKERS) * len(GOLD_METRICS)
 
+#: Canonical ``unit`` string expected in the gold-standard workbook for each
+#: metric. The convention (set by the user, 2026-04-27) is:
+#:
+#: * The five monetary metrics (``revenue``, ``net_income``,
+#:   ``operating_income``, ``total_assets``, ``total_equity``) are
+#:   recorded as **absolute USD** values (no thousands/millions scaling)
+#:   with ``unit == "USD"``.
+#: * ``eps_diluted`` is recorded as the per-share ratio as published in
+#:   the 10-K (e.g. ``6.13``) with ``unit == "USD/share"``.
+#:
+#: This dict is the single source of truth for unit consistency: the
+#: ``annotate_gold_standard.py validate`` subcommand reads it, and the
+#: T1.8/T1.9 evaluation scripts will reuse the same constant when
+#: comparing gold values against L3 / LLM extractions. Do not duplicate
+#: these strings elsewhere — import from here instead.
+EXPECTED_UNITS: Final[dict[str, str]] = {
+    "revenue": "USD",
+    "net_income": "USD",
+    "operating_income": "USD",
+    "total_assets": "USD",
+    "total_equity": "USD",
+    "eps_diluted": "USD/share",
+}
+
 
 __all__ = [
     "GOLD_TICKERS",
     "GOLD_METRICS",
     "GOLD_COLUMNS",
     "GOLD_ROW_COUNT",
+    "EXPECTED_UNITS",
 ]

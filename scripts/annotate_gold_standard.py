@@ -61,6 +61,7 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 from agents._gold_schema import (  # noqa: E402  (path tweak above)
+    EXPECTED_UNITS,
     GOLD_COLUMNS,
     GOLD_METRICS,
     GOLD_ROW_COUNT,
@@ -330,12 +331,23 @@ def _validate_row(
         # bool is a subclass of int — explicitly reject it.
         add(f"'value' no es numérico: {val!r}")
 
-    # --- unit: non-empty string ------------------------------------------
+    # --- unit: non-empty string + matches EXPECTED_UNITS for the metric --
     unit = by_name["unit"]
     if _is_blank(unit):
         add("falta 'unit'")
     elif not isinstance(unit, str):
         add(f"'unit' no es texto: {unit!r}")
+    else:
+        # Unit-consistency check (project-wide convention; see
+        # ``EXPECTED_UNITS`` in ``agents/_gold_schema.py``). Skip when the
+        # metric is unknown — that's already reported above and would only
+        # add noise.
+        expected_unit = EXPECTED_UNITS.get(metric) if isinstance(metric, str) else None
+        if expected_unit is not None and unit != expected_unit:
+            add(
+                f"unit incorrecta: esperaba {expected_unit!r}, "
+                f"encontrado {unit!r}"
+            )
 
     # --- source_page: int -------------------------------------------------
     sp = by_name["source_page"]

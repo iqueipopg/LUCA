@@ -333,6 +333,54 @@ class TestExtractFallbackChain:
         assert revenue["tag_used"] == "SalesRevenueNet"
         assert revenue["fiscal_year"] == 2015
 
+    def test_revenue_falls_back_to_bank_interest_income_for_jpm_like_filer(
+        self,
+    ):
+        """JPM-like commercial-bank scenario (SIC 6022).
+
+        The first three candidates in the ``revenue`` chain
+        (``Revenues``, ``RevenueFromContractWithCustomerExcludingAssessedTax``,
+        ``SalesRevenueNet``) are typically absent or non-recent for
+        commercial banks. The last candidate,
+        ``InterestAndDividendIncomeOperating``, must be picked up so we
+        capture the interest-income component of net revenue (~60–65%
+        for JPM). The residual under-estimation is documented in T1.10.
+
+        Cadena actualizada por review  (2026-04-27).
+        """
+        from agents.agent3_extractor import extract
+
+        xbrl = _wrap_us_gaap(
+            {
+                "InterestAndDividendIncomeOperating": {
+                    "USD": [
+                        _annual_usd_fact(
+                            start="2023-01-01",
+                            end="2023-12-31",
+                            val=89_267_000_000,
+                            fy=2023,
+                            accn="0000019617-24-000123",
+                        ),
+                    ],
+                },
+            }
+        )
+
+        result = extract(
+            _make_ingest(
+                xbrl_data=xbrl,
+                company="JPMorgan Chase & Co.",
+                ticker="JPM",
+            )
+        )
+
+        revenue = result["metrics"]["revenue"]
+        assert revenue is not None
+        assert revenue["tag_used"] == "InterestAndDividendIncomeOperating"
+        assert revenue["value"] == 89_267_000_000.0
+        assert revenue["fiscal_year"] == 2023
+        assert revenue["unit"] == "USD"
+
     def test_aapl_fixture_revenue_resolves_to_asc606_fy2025_under_t15(
         self, companyfacts_aapl
     ):

@@ -81,6 +81,17 @@ _LOGGER = get_logger(__name__)
 #:     (see ``experiments/error_log_sprint1.md`` 2026-04-27 entry).
 #:     ``SalesRevenueNet`` was deprecated by FASB on 2018-01-31 but still
 #:     appears in legacy filings; kept as a fallback.
+#:     ``InterestAndDividendIncomeOperating`` is added as the **last**
+#:     candidate to rescue commercial banks (SIC 6022 — e.g. JPM): the
+#:     ASC-606 tags rarely cover banking revenue, and ``Revenues`` is
+#:     often absent in those filings. The interest-income line accounts
+#:     for ~60–65% of JPM's Net Revenue, so we accept the residual
+#:     under-estimation and document it explicitly in T1.10. For the
+#:     nine non-bank tickers in the gold standard, this tag is either
+#:     absent or appears as a partial number; placing it last in the
+#:     chain prevents contamination, because T1.5 picks the most
+#:     recent fact across the chain — a partial bank-style value can
+#:     only "win" if no other candidate has any recent annual fact.
 #:   * ``net_income`` — ``NetIncomeLoss`` is the post-2009 standard.
 #:     ``ProfitLoss`` is used by some IFRS-leaning filers and by the few
 #:     issuers who report at the consolidated (pre-NCI) level; useful as
@@ -88,10 +99,15 @@ _LOGGER = get_logger(__name__)
 #:   * ``operating_income`` — single tag, ``OperatingIncomeLoss`` is the
 #:     only widely-used US-GAAP element.
 #:   * ``total_assets`` — single tag, ``Assets`` is canonical.
-#:   * ``total_equity`` — ``StockholdersEquity`` is the parent-only tag.
+#:   * ``total_equity`` —
 #:     ``StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest``
-#:     is kept as a fallback for issuers with material minority interest
-#:     who report the consolidated form.
+#:     is the **preferred** tag (placed first by review of ,
+#:     2026-04-27): the consolidated form is always numerically correct
+#:     for filers both with and without minority interests. The
+#:     parent-only ``StockholdersEquity`` tag, used as a fallback,
+#:     under-states equity for issuers with partially-owned subsidiaries
+#:     (e.g. GOOGL, META). When no NCI exists, both tags publish the
+#:     same value, so promoting the consolidated tag carries no risk.
 #:   * ``eps_diluted`` — ``EarningsPerShareDiluted`` is canonical.
 #:     ``IncomeLossFromContinuingOperationsPerDilutedShare`` is a rarer
 #:     fallback for companies that report only the continuing-ops EPS line
@@ -101,6 +117,9 @@ _TAG_CANDIDATES: Final[dict[str, tuple[str, ...]]] = {
         "Revenues",
         "RevenueFromContractWithCustomerExcludingAssessedTax",
         "SalesRevenueNet",
+        # Last-resort fallback for SIC 6022 commercial banks (e.g. JPM).
+        # See justification block above.
+        "InterestAndDividendIncomeOperating",
     ),
     "net_income": (
         "NetIncomeLoss",
@@ -113,8 +132,11 @@ _TAG_CANDIDATES: Final[dict[str, tuple[str, ...]]] = {
         "Assets",
     ),
     "total_equity": (
-        "StockholdersEquity",
+        # Consolidated (NCI-inclusive) is preferred — always correct for
+        # filers with or without minority interests. See justification
+        # block above (review of , 2026-04-27).
         "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest",
+        "StockholdersEquity",
     ),
     "eps_diluted": (
         "EarningsPerShareDiluted",

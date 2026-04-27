@@ -173,7 +173,14 @@ class TestValidate:
     def test_validate_accepts_well_formed_rows(
         self, tmp_path: Path, annotate_module: ModuleType
     ) -> None:
-        """A workbook with all rows correctly annotated is reported clean."""
+        """A workbook with all rows correctly annotated is reported clean.
+
+        The unit convention is enforced: the five monetary metrics use
+        ``unit == "USD"`` and ``eps_diluted`` uses ``unit == "USD/share"``
+        (see ``EXPECTED_UNITS`` in ``agents/_gold_schema.py``).
+        """
+        from agents._gold_schema import EXPECTED_UNITS
+
         path = tmp_path / "gold.xlsx"
         annotate_module.init_workbook(path)
 
@@ -188,7 +195,7 @@ class TestValidate:
                 metric=row["metric"],
                 fiscal_year=2024,
                 value=1234.5,
-                unit="USD millions",
+                unit=EXPECTED_UNITS[row["metric"]],
                 source_page=42,
                 notes="anotado a mano",
             )
@@ -237,6 +244,132 @@ class TestValidate:
         assert "fiscal_year" in reasons
         assert "value" in reasons
         assert "source_page" in reasons
+
+
+# ---------------------------------------------------------------------------
+# Unit-consistency check (added after T1.5 review)
+#
+# The gold-standard convention (see ``EXPECTED_UNITS`` in
+# ``agents/_gold_schema.py``):
+#   * the five monetary metrics → ``unit == "USD"``
+#   * ``eps_diluted`` → ``unit == "USD/share"``
+# Anything else is flagged as invalid with an explicit reason.
+# ---------------------------------------------------------------------------
+
+
+class TestValidateUnits:
+    def _seed_skeleton(
+        self,
+        tmp_path: Path,
+        annotate_module: ModuleType,
+    ) -> Path:
+        """Initialise a fresh skeleton workbook for each unit test."""
+        path = tmp_path / "gold.xlsx"
+        annotate_module.init_workbook(path)
+        return path
+
+    def _annotate_row(
+        self,
+        path: Path,
+        annotate_module: ModuleType,
+        excel_row: int,
+        *,
+        ticker: str,
+        metric: str,
+        unit: str,
+    ) -> None:
+        """Overwrite a row with a fully-filled annotation using ``unit``."""
+        wb = load_workbook(path)
+        sheet = wb[annotate_module.SHEET_NAME]
+        _write_row(
+            sheet,
+            excel_row,
+            ticker=ticker,
+            metric=metric,
+            fiscal_year=2024,
+            value=1234.5,
+            unit=unit,
+            source_page=42,
+            notes="anotado a mano",
+        )
+        wb.save(path)
+
+    def test_monetary_metric_with_usd_is_valid(
+        self, tmp_path: Path, annotate_module: ModuleType
+    ) -> None:
+        """Monetary metric (revenue) with ``unit == "USD"`` must validate."""
+        path = self._seed_skeleton(tmp_path, annotate_module)
+        self._annotate_row(
+            path, annotate_module, excel_row=2,
+            ticker="AAPL", metric="revenue", unit="USD",
+        )
+
+        report = annotate_module.validate_workbook(path)
+
+        # Row 2 is the only annotated row; it should have no issues.
+        row2_issues = [i for i in report.issues if i.excel_row == 2]
+        assert row2_issues == []
+        assert report.invalid_rows == 0
+
+    def test_monetary_metric_with_thousands_is_invalid(
+        self, tmp_path: Path, annotate_module: ModuleType
+    ) -> None:
+        """Monetary metric with ``unit == "thousands"`` is rejected with a
+        reason that names both the expected and the offending unit.
+        """
+        path = self._seed_skeleton(tmp_path, annotate_module)
+        self._annotate_row(
+            path, annotate_module, excel_row=2,
+            ticker="AAPL", metric="revenue", unit="thousands",
+        )
+
+        report = annotate_module.validate_workbook(path)
+
+        row2_issues = [i for i in report.issues if i.excel_row == 2]
+        assert len(row2_issues) == 1
+        reason = row2_issues[0].reason
+        assert "unit incorrecta" in reason
+        assert "'USD'" in reason
+        assert "'thousands'" in reason
+        assert report.invalid_rows == 1
+
+    def test_eps_diluted_with_usd_per_share_is_valid(
+        self, tmp_path: Path, annotate_module: ModuleType
+    ) -> None:
+        """``eps_diluted`` with ``unit == "USD/share"`` must validate."""
+        path = self._seed_skeleton(tmp_path, annotate_module)
+        self._annotate_row(
+            path, annotate_module, excel_row=2,
+            ticker="AAPL", metric="eps_diluted", unit="USD/share",
+        )
+
+        report = annotate_module.validate_workbook(path)
+
+        row2_issues = [i for i in report.issues if i.excel_row == 2]
+        assert row2_issues == []
+        assert report.invalid_rows == 0
+
+    def test_eps_diluted_with_plain_usd_is_invalid(
+        self, tmp_path: Path, annotate_module: ModuleType
+    ) -> None:
+        """``eps_diluted`` annotated as plain ``"USD"`` (instead of
+        ``"USD/share"``) is rejected with an explicit reason.
+        """
+        path = self._seed_skeleton(tmp_path, annotate_module)
+        self._annotate_row(
+            path, annotate_module, excel_row=2,
+            ticker="AAPL", metric="eps_diluted", unit="USD",
+        )
+
+        report = annotate_module.validate_workbook(path)
+
+        row2_issues = [i for i in report.issues if i.excel_row == 2]
+        assert len(row2_issues) == 1
+        reason = row2_issues[0].reason
+        assert "unit incorrecta" in reason
+        assert "'USD/share'" in reason
+        assert "'USD'" in reason
+        assert report.invalid_rows == 1
 
 
 # ---------------------------------------------------------------------------
