@@ -13,8 +13,8 @@ Si empiezas desde este scaffold:
 
 ```bash
 cd ~
-mv ~/Descargas/luca-starter ~/luca
-cd ~/luca
+mv ~/Descargas/luca-starter ~/luca-ai-lab
+cd ~/luca-ai-lab
 git init
 git add .
 git commit -m "chore: initial scaffold"
@@ -23,7 +23,7 @@ git commit -m "chore: initial scaffold"
 ## Paso 2. Entorno Python
 
 ```bash
-cd ~/luca
+cd ~/luca-ai-lab
 python3.11 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
@@ -32,7 +32,7 @@ pip install -r requirements.txt
 
 
 ```
-/home/<tu-usuario>/luca/venv/bin/python
+/home/<tu-usuario>/luca-ai-lab/venv/bin/python
 ```
 
 ## Paso 3. Descargar el modelo local (Qwen 2.5 7B)
@@ -68,14 +68,14 @@ EOF
 ## Paso 5. Verificar que todo funciona
 
 ```bash
-/home/<tu-usuario>/luca/venv/bin/python -c "import pdfplumber, requests, yaml; print('OK')"
+/home/<tu-usuario>/luca-ai-lab/venv/bin/python -c "import pdfplumber, requests, yaml; print('OK')"
 ollama list
 nvidia-smi
 ```
 
 
 ```bash
-cd ~/luca
+cd ~/luca-ai-lab
 ```
 
 
