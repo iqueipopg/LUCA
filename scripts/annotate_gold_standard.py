@@ -11,7 +11,17 @@ Subcommands
 ``init``
     Create ``data/gold_standard.xlsx`` with a header row and one empty
     row per (ticker, metric) pair. Refuses to overwrite an existing
-    file.
+    file. Use this **only** for the very first creation of the workbook.
+
+``extend``
+    Append skeleton rows for any (ticker, metric) combinations that are
+    missing from an *existing* workbook, without touching the rows that
+    are already present (whether annotated or not). Use this when
+    :data:`GOLD_TICKERS` or :data:`GOLD_METRICS` grows (e.g. T2.0c added
+    two new metrics, ``cash`` and ``long_term_debt``) and the workbook
+    must catch up to the new schema. Idempotent: running it twice in a
+    row is safe — the second run finds zero missing pairs and exits
+    without modifying the file.
 
 ``validate``
     Read the workbook, check that every row is fully and consistently
@@ -25,6 +35,8 @@ Usage (always invoke through the project's venv interpreter):
 
     /home/<user>/luca-ai-lab/venv/bin/python \
         scripts/annotate_gold_standard.py init
+    /home/<user>/luca-ai-lab/venv/bin/python \
+        scripts/annotate_gold_standard.py extend
     /home/<user>/luca-ai-lab/venv/bin/python \
         scripts/annotate_gold_standard.py validate
     /home/<user>/luca-ai-lab/venv/bin/python \
@@ -206,6 +218,106 @@ def init_workbook(path: Path) -> bool:
 
     wb.save(path)
     return True
+
+
+# ---------------------------------------------------------------------------
+# Workbook extension (schema growth)
+# ---------------------------------------------------------------------------
+
+
+def extend_workbook(path: Path) -> tuple[tuple[str, str], ...]:
+    """Append skeleton rows for missing (ticker, metric) pairs.
+
+    The function inspects the workbook at ``path``, computes which
+    combinations of :data:`GOLD_TICKERS` × :data:`GOLD_METRICS` are not
+    yet present in any non-blank row, and appends one skeleton row per
+    missing pair. Existing rows are never read/modified — including
+    rows whose ``value`` cell holds the :data:`NULL_SENTINEL` string,
+    which still counts as "present".
+
+    The header row, freeze panes, and column widths are preserved
+    because :func:`_open_sheet` re-loads the workbook in normal (not
+    read-only) mode and openpyxl keeps those structures untouched on
+    save.
+
+    Args:
+        path: Path to the existing ``.xlsx`` workbook.
+
+    Returns:
+        A tuple of the ``(ticker, metric)`` pairs that were appended,
+        in iteration order ``GOLD_TICKERS × GOLD_METRICS``. Empty tuple
+        when nothing was missing.
+
+    Raises:
+        FileNotFoundError: The workbook does not exist (use ``init``
+            first).
+        ValueError: The workbook is missing the expected sheet or its
+            header drifted from :data:`GOLD_COLUMNS`.
+
+    Idempotency:
+        Running ``extend_workbook`` twice in a row is safe:
+
+        * First call: appends every currently-missing pair.
+        * Second call: those pairs are now present, so the missing set
+          is empty and the function returns an empty tuple **without
+          re-opening the workbook for writing**. The on-disk file is
+          untouched.
+
+        This matters because the gold standard is a hand-annotated
+        artefact: the script must never rewrite cells the user has
+        already filled in, and must never grow the workbook past its
+        canonical size.
+
+    Anomaly handling:
+        * A row with a ticker but no metric (or vice versa) is treated
+          as **not** representing any concrete pair, so the missing
+          combination corresponding to that ticker/metric will still be
+          added. The malformed row is left in place — cleanup is the
+          responsibility of ``validate``, not ``extend``.
+        * Duplicate rows for the same ``(ticker, metric)`` are not
+          deduplicated. They count as present, so ``extend`` will not
+          add a third copy. Detecting/removing duplicates is also out
+          of scope.
+    """
+    sheet = _open_sheet(path)
+
+    present: set[tuple[str, str]] = set()
+    for excel_row in range(2, sheet.max_row + 1):
+        ticker_cell = sheet.cell(
+            row=excel_row, column=GOLD_COLUMNS.index("ticker") + 1
+        ).value
+        metric_cell = sheet.cell(
+            row=excel_row, column=GOLD_COLUMNS.index("metric") + 1
+        ).value
+        if isinstance(ticker_cell, str) and isinstance(metric_cell, str):
+            t = ticker_cell.strip()
+            m = metric_cell.strip()
+            if t and m:
+                present.add((t, m))
+
+    expected = [(t, m) for t in GOLD_TICKERS for m in GOLD_METRICS]
+    missing = tuple(pair for pair in expected if pair not in present)
+
+    if not missing:
+        return ()
+
+    # Re-open the workbook for writing. ``_open_sheet`` already loaded a
+    # workbook, but it returns the worksheet, not the parent workbook,
+    # so we re-load here. This second load is cheap (single small xlsx)
+    # and keeps ``_open_sheet`` purely a reader.
+    wb = load_workbook(path, data_only=False, read_only=False)
+    sheet = wb[SHEET_NAME]
+
+    ticker_col = GOLD_COLUMNS.index("ticker")
+    metric_col = GOLD_COLUMNS.index("metric")
+    for ticker, metric in missing:
+        row: list[str | None] = [None] * len(GOLD_COLUMNS)
+        row[ticker_col] = ticker
+        row[metric_col] = metric
+        sheet.append(row)
+
+    wb.save(path)
+    return missing
 
 
 # ---------------------------------------------------------------------------
@@ -528,6 +640,13 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Crea el Excel con el esqueleto (ticker, metric) si no existe.",
     )
     sub.add_parser(
+        "extend",
+        help=(
+            "Añade filas skeleton para (ticker, metric) ausentes sin tocar "
+            "las anotadas. Idempotente."
+        ),
+    )
+    sub.add_parser(
         "validate",
         help="Valida que todas las filas estén anotadas con tipos sanos.",
     )
@@ -552,6 +671,30 @@ def _print_init(path: Path, created: bool) -> None:
     else:
         print(f"El archivo {path} ya existe; no se sobrescribe.")
         print("Borra o renombra el archivo si quieres regenerar el esqueleto.")
+
+
+def _print_extend(added: tuple[tuple[str, str], ...]) -> None:
+    """Print the user-facing summary of an ``extend`` run (Spanish)."""
+    if not added:
+        print("No hay pares (ticker, metric) ausentes; nada que extender.")
+        return
+
+    tickers_added = {t for t, _ in added}
+    metrics_added = {m for _, m in added}
+    print(
+        f"Añadidas {len(added)} filas skeleton "
+        f"({len(tickers_added)} tickers x {len(metrics_added)} métricas)."
+    )
+
+    # Group by metric so the user can see at a glance which metric block
+    # grew (most common reason: a new metric was added to GOLD_METRICS).
+    by_metric: dict[str, list[str]] = {}
+    for ticker, metric in added:
+        by_metric.setdefault(metric, []).append(ticker)
+    for metric in GOLD_METRICS:
+        if metric in by_metric:
+            tickers = ", ".join(by_metric[metric])
+            print(f"  {metric}: {tickers}")
 
 
 def _print_validate(report: ValidationReport) -> None:
@@ -600,6 +743,15 @@ def main(argv: list[str] | None = None) -> int:
         _print_init(path, created)
         return 0
 
+    if args.command == "extend":
+        try:
+            added = extend_workbook(path)
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            return 2
+        _print_extend(added)
+        return 0
+
     if args.command == "validate":
         try:
             report = validate_workbook(path)
@@ -633,6 +785,7 @@ __all__ = [
     "SHEET_NAME",
     "StatusReport",
     "ValidationReport",
+    "extend_workbook",
     "init_workbook",
     "main",
     "status_workbook",
