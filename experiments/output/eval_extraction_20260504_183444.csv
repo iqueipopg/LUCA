@@ -1,0 +1,61 @@
+ticker,metric,gold_value,gold_fiscal_year,predicted_value,predicted_fiscal_year,predicted_period_end,predicted_tag_used,predicted_accession,predicted_unit,match,abs_error,rel_error,notes_gold
+AAPL,revenue,416161000000.0,2025,416161000000.0,2025,2025-09-27,RevenueFromContractWithCustomerExcludingAssessedTax,0000320193-25-000079,USD,True,0.0,0.0,"""Total net sales"" line"
+AAPL,net_income,112010000000.0,2025,112010000000.0,2025,2025-09-27,NetIncomeLoss,0000320193-25-000079,USD,True,0.0,0.0,"""Net income"" line"
+AAPL,operating_income,133050000000.0,2025,133050000000.0,2025,2025-09-27,OperatingIncomeLoss,0000320193-25-000079,USD,True,0.0,0.0,"""Operating income"" line"
+AAPL,total_assets,359241000000.0,2025,359241000000.0,2025,2025-09-27,Assets,0000320193-25-000079,USD,True,0.0,0.0,"""Total assets"" line"
+AAPL,total_equity,73733000000.0,2025,73733000000.0,2025,2025-09-27,StockholdersEquity,0000320193-25-000079,USD,True,0.0,0.0,"""Total shareholders' equity"""
+AAPL,eps_diluted,7.46,2025,7.46,2025,2025-09-27,EarningsPerShareDiluted,0000320193-25-000079,USD/shares,True,0.0,0.0,"Diluted EPS, not Basic"
+MSFT,revenue,281724000000.0,2025,281724000000.0,2025,2025-06-30,RevenueFromContractWithCustomerExcludingAssessedTax,0000950170-25-100235,USD,True,0.0,0.0,
+MSFT,net_income,101832000000.0,2025,101832000000.0,2025,2025-06-30,NetIncomeLoss,0000950170-25-100235,USD,True,0.0,0.0,
+MSFT,operating_income,128528000000.0,2025,128528000000.0,2025,2025-06-30,OperatingIncomeLoss,0000950170-25-100235,USD,True,0.0,0.0,
+MSFT,total_assets,619003000000.0,2025,619003000000.0,2025,2025-06-30,Assets,0000950170-25-100235,USD,True,0.0,0.0,
+MSFT,total_equity,343479000000.0,2025,343479000000.0,2025,2025-06-30,StockholdersEquity,0000950170-25-100235,USD,True,0.0,0.0,
+MSFT,eps_diluted,13.64,2025,13.64,2025,2025-06-30,EarningsPerShareDiluted,0000950170-25-100235,USD/shares,True,0.0,0.0,
+GOOGL,revenue,402836000000.0,2025,402836000000.0,2025,2025-12-31,Revenues,0001652044-26-000018,USD,True,0.0,0.0,
+GOOGL,net_income,132170000000.0,2025,132170000000.0,2025,2025-12-31,NetIncomeLoss,0001652044-26-000018,USD,True,0.0,0.0,
+GOOGL,operating_income,129039000000.0,2025,129039000000.0,2025,2025-12-31,OperatingIncomeLoss,0001652044-26-000018,USD,True,0.0,0.0,
+GOOGL,total_assets,595281000000.0,2025,595281000000.0,2025,2025-12-31,Assets,0001652044-26-000018,USD,True,0.0,0.0,
+GOOGL,total_equity,415265000000.0,2025,415265000000.0,2025,2025-12-31,StockholdersEquity,0001652044-26-000018,USD,True,0.0,0.0,
+GOOGL,eps_diluted,10.81,2025,10.81,2025,2025-12-31,EarningsPerShareDiluted,0001652044-26-000018,USD/shares,True,0.0,0.0,
+META,revenue,200966000000.0,2025,200966000000.0,2025,2025-12-31,RevenueFromContractWithCustomerExcludingAssessedTax,0001628280-26-003942,USD,True,0.0,0.0,
+META,net_income,60458000000.0,2025,60458000000.0,2025,2025-12-31,NetIncomeLoss,0001628280-26-003942,USD,True,0.0,0.0,
+META,operating_income,83276000000.0,2025,83276000000.0,2025,2025-12-31,OperatingIncomeLoss,0001628280-26-003942,USD,True,0.0,0.0,
+META,total_assets,366021000000.0,2025,366021000000.0,2025,2025-12-31,Assets,0001628280-26-003942,USD,True,0.0,0.0,
+META,total_equity,217243000000.0,2025,217243000000.0,2025,2025-12-31,StockholdersEquity,0001628280-26-003942,USD,True,0.0,0.0,
+META,eps_diluted,23.49,2025,23.49,2025,2025-12-31,EarningsPerShareDiluted,0001628280-26-003942,USD/shares,True,0.0,0.0,
+AMZN,revenue,716924000000.0,2025,716924000000.0,2025,2025-12-31,RevenueFromContractWithCustomerExcludingAssessedTax,0001018724-26-000004,USD,True,0.0,0.0,
+AMZN,net_income,77670000000.0,2025,77670000000.0,2025,2025-12-31,NetIncomeLoss,0001018724-26-000004,USD,True,0.0,0.0,
+AMZN,operating_income,79975000000.0,2025,79975000000.0,2025,2025-12-31,OperatingIncomeLoss,0001018724-26-000004,USD,True,0.0,0.0,
+AMZN,total_assets,818042000000.0,2025,818042000000.0,2025,2025-12-31,Assets,0001018724-26-000004,USD,True,0.0,0.0,
+AMZN,total_equity,411065000000.0,2025,411065000000.0,2025,2025-12-31,StockholdersEquity,0001018724-26-000004,USD,True,0.0,0.0,
+AMZN,eps_diluted,7.17,2025,7.17,2025,2025-12-31,EarningsPerShareDiluted,0001018724-26-000004,USD/shares,True,0.0,0.0,
+NVDA,revenue,215938000000.0,2026,215938000000.0,2026,2026-01-25,Revenues,0001045810-26-000021,USD,True,0.0,0.0,
+NVDA,net_income,120067000000.0,2026,120067000000.0,2026,2026-01-25,NetIncomeLoss,0001045810-26-000021,USD,True,0.0,0.0,
+NVDA,operating_income,130387000000.0,2026,130387000000.0,2026,2026-01-25,OperatingIncomeLoss,0001045810-26-000021,USD,True,0.0,0.0,
+NVDA,total_assets,206803000000.0,2026,206803000000.0,2026,2026-01-25,Assets,0001045810-26-000021,USD,True,0.0,0.0,
+NVDA,total_equity,157293000000.0,2026,157293000000.0,2026,2026-01-25,StockholdersEquity,0001045810-26-000021,USD,True,0.0,0.0,
+NVDA,eps_diluted,4.9,2026,4.9,2026,2026-01-25,EarningsPerShareDiluted,0001045810-26-000021,USD/shares,True,0.0,0.0,
+JPM,revenue,182447000000.0,2025,182447000000.0,2025,2025-12-31,Revenues,0001628280-26-008131,USD,True,0.0,0.0,
+JPM,net_income,57048000000.0,2025,57048000000.0,2025,2025-12-31,NetIncomeLoss,0001628280-26-008131,USD,True,0.0,0.0,
+JPM,operating_income,,2025,,,,,,,True,,,
+JPM,total_assets,4424900000000.0,2025,4424900000000.0,2025,2025-12-31,Assets,0001628280-26-008131,USD,True,0.0,0.0,
+JPM,total_equity,362438000000.0,2025,362438000000.0,2025,2025-12-31,StockholdersEquity,0001628280-26-008131,USD,True,0.0,0.0,
+JPM,eps_diluted,20.02,2025,20.02,2025,2025-12-31,EarningsPerShareDiluted,0001628280-26-008131,USD/shares,True,0.0,0.0,
+KO,revenue,47941000000.0,2025,47941000000.0,2025,2025-12-31,Revenues,0001628280-26-010047,USD,True,0.0,0.0,
+KO,net_income,13137000000.0,2025,13107000000.0,2025,2025-12-31,NetIncomeLoss,0001628280-26-010047,USD,True,30000000.0,0.0022836263987211693,"""Consolidated Net Income (incl NCI = 30M); Net Income attributable to KO shareowners alone = 13,107M"""
+KO,operating_income,13762000000.0,2025,13762000000.0,2025,2025-12-31,OperatingIncomeLoss,0001628280-26-010047,USD,True,0.0,0.0,
+KO,total_assets,104816000000.0,2025,104816000000.0,2025,2025-12-31,Assets,0001628280-26-010047,USD,True,0.0,0.0,
+KO,total_equity,34275000000.0,2025,34275000000.0,2025,2025-12-31,StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest,0001628280-26-010047,USD,True,0.0,0.0,
+KO,eps_diluted,3.04,2025,3.04,2025,2025-12-31,EarningsPerShareDiluted,0001628280-26-010047,USD/shares,True,0.0,0.0,
+JNJ,revenue,94193000000.0,2025,94193000000.0,2025,2025-12-28,RevenueFromContractWithCustomerExcludingAssessedTax,0000200406-26-000016,USD,True,0.0,0.0,
+JNJ,net_income,26804000000.0,2025,26804000000.0,2025,2025-12-28,NetIncomeLoss,0000200406-26-000016,USD,True,0.0,0.0,
+JNJ,operating_income,,2025,21590000000.0,2014,2014-12-28,OperatingIncomeLoss,0000200406-15-000004,USD,False,,,"Not reported as separate subtotal in JNJ income statement (no ""Operating Profit"" line); closest figure ""Earnings before provision for taxes on income"" = 32,581M but includes interest and non-operating items"
+JNJ,total_assets,199210000000.0,2025,199210000000.0,2025,2025-12-28,Assets,0000200406-26-000016,USD,True,0.0,0.0,
+JNJ,total_equity,81544000000.0,2025,81544000000.0,2025,2025-12-28,StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest,0000200406-26-000016,USD,True,0.0,0.0,
+JNJ,eps_diluted,11.03,2025,11.03,2025,2025-12-28,EarningsPerShareDiluted,0000200406-26-000016,USD/shares,True,0.0,0.0,Diluted EPS (continuing = total in FY2025; no discontinued ops)
+WMT,revenue,713163000000.0,2026,713163000000.0,2026,2026-01-31,Revenues,0000104169-26-000055,USD,True,0.0,0.0,
+WMT,net_income,21893000000.0,2026,21893000000.0,2026,2026-01-31,NetIncomeLoss,0000104169-26-000055,USD,True,0.0,0.0,"Walmart-attributable (excluye NCI). Cambiado desde 22.270B (consolidated) el 2026-05-04 (T1.10) para alinear con la convención attributable que ya usa el note de eps_diluted. Cifra que aparece literal en el note del EPS diluido del mismo ticker, y consistente con XBRL `EarningsPerShareDiluted`."
+WMT,operating_income,29825000000.0,2026,29825000000.0,2026,2026-01-31,OperatingIncomeLoss,0000104169-26-000055,USD,True,0.0,0.0,
+WMT,total_assets,284668000000.0,2026,284668000000.0,2026,2026-01-31,Assets,0000104169-26-000055,USD,True,0.0,0.0,
+WMT,total_equity,105887000000.0,2026,105887000000.0,2026,2026-01-31,StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest,0000104169-26-000055,USD,True,0.0,0.0,"""Total shareholders' equity (105,887) includes nonredeemable NCI (6,270) but excludes redeemable NCI (293), per XBRL convention. Total Walmart shareholders' equity alone = 99,617."""
+WMT,eps_diluted,2.73,2026,2.73,2026,2026-01-31,EarningsPerShareDiluted,0000104169-26-000055,USD/shares,True,0.0,0.0,"""EPS calculated on net income attributable to Walmart (21,893M / 8,022M diluted shares); excludes NCI portion. Matches XBRL EarningsPerShareDiluted standard tag."""

@@ -1,0 +1,17 @@
+Eres un analista financiero. A continuación tienes un extracto de un 10-K presentado por una empresa estadounidense ante la SEC. Extrae las 6 métricas financieras del fiscal year más reciente que aparezca en el extracto.
+
+EXTRACTO:
+{content}
+
+INSTRUCCIONES (estrictas):
+1. Devuelve SOLO un objeto JSON válido. Sin texto antes, sin texto después, sin bloques de código markdown.
+2. Las claves del JSON deben ser exactamente: revenue, net_income, operating_income, total_assets, total_equity, eps_diluted.
+3. Los valores deben ser:
+   - Números absolutos en USD para las 5 métricas monetarias (ejemplo: 391035000000 para 391 billion USD). Si el extracto presenta los números en miles o millones, conviértelos a USD absolutos antes de reportarlos.
+   - Ratio en USD por acción para eps_diluted (ejemplo: 6.13).
+   - null (sin comillas) si no estás seguro del valor, de la unidad, o si la métrica no aparece claramente.
+4. NO inventes valores ni hagas estimaciones. Si no está claro, usa null.
+5. Si una métrica aparece varias veces para distintos años, escoge siempre el fiscal year más reciente.
+
+JSON:
+# version: 1
