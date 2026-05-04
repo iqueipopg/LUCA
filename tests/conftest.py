@@ -84,6 +84,20 @@ def sample_10k_html() -> str:
     return path.read_text(encoding="utf-8")
 
 
+@pytest.fixture(scope="session")
+def sample_10k_with_toc_html() -> str:
+    """Return a 10-K fixture that includes a real-shaped table of contents.
+
+    Used by T1.7b tests for the TOC-skip heuristic in
+    :mod:`agents.agent2_parser`. Mirrors the structure of the real
+    AAPL_0000320193-25-000079.html: iXBRL preamble, cover page, dense
+    TOC table with all 10-K items, body cross-references inside Item 1,
+    and proper body headers for Items 1, 1A, 1B, 7, 7A, 8 and 9.
+    """
+    path = _FIXTURES_DIR / "sample_10k_with_toc.html"
+    return path.read_text(encoding="utf-8")
+
+
 # ---------------------------------------------------------------------------
 # Ollama mock
 # ---------------------------------------------------------------------------
