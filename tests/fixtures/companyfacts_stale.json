@@ -1,0 +1,27 @@
+{
+  "cik": 9999999999,
+  "entityName": "STALE FILER FIXTURE INC.",
+  "facts": {
+    "us-gaap": {
+      "OperatingIncomeLoss": {
+        "label": "Operating Income (Loss)",
+        "description": "Synthetic fixture for T2.0b. Single FY2014 fact intended to be older than the 730-day recency guard relative to any filing in 2025+.",
+        "units": {
+          "USD": [
+            {
+              "end": "2014-12-31",
+              "val": 21590000000.0,
+              "accn": "0000200406-15-000010",
+              "fy": 2014,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2015-02-15",
+              "frame": "CY2014",
+              "start": "2014-01-01"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

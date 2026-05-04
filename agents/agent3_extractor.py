@@ -168,6 +168,16 @@ _REQUIRED_FORM: Final[str] = "10-K"
 #: Required fiscal-period code for annual figures.
 _REQUIRED_FP: Final[str] = "FY"
 
+#: Maximum age of an XBRL fact relative to the filing date. Beyond this
+#: bound the fact is treated as stale and the extractor returns None
+#: for the metric. 730d (~2 fiscal years) accommodates 53-week years and
+#: typical filing-date lag while rejecting facts older than the prior
+#: fiscal year — the latter signal a stale tag inherited from EDGAR's
+#: aggregated companyfacts history (e.g. JNJ/OperatingIncomeLoss
+#: published last in FY2014 and never since). See T2.0b in
+#: SPRINT_PLAN.md and the diary entry for Sprint 2.
+_MAX_FACT_AGE_DAYS: Final[int] = 730
+
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -307,6 +317,7 @@ def _collect_annual_candidates(
 def _extract_metric(
     us_gaap: dict[str, Any],
     metric: str,
+    filing_date: str | None,
 ) -> dict[str, Any] | None:
     """Extract a single metric from the ``us-gaap`` namespace.
 
@@ -318,14 +329,27 @@ def _extract_metric(
     the output records whichever tag actually resolved (essential for
     T1.10's primary-vs-fallback coverage analysis).
 
+    Recency guard (T2.0b): once the winning fact is selected, its
+    ``end`` date is compared against ``filing_date``. If the fact is
+    older than :data:`_MAX_FACT_AGE_DAYS`, it is treated as a stale tag
+    inherited from EDGAR's aggregated companyfacts history (e.g.
+    JNJ/OperatingIncomeLoss published last in FY2014) and the metric
+    resolves to ``None``. When ``filing_date`` is missing or malformed
+    the guard is disabled and a warning is logged; the pipeline keeps
+    going with whatever the selector returned.
+
     Args:
         us_gaap: The ``xbrl_data["facts"]["us-gaap"]`` sub-dict.
         metric: Canonical metric name.
+        filing_date: Filing date of the source 10-K in ISO ``YYYY-MM-DD``
+            format. Used by the recency guard. ``None`` disables the
+            guard (with a warning).
 
     Returns:
         A dict with keys ``value``, ``fiscal_year``, ``period_end``,
         ``tag_used``, ``unit`` and ``accession``; or ``None`` if no
-        candidate tag yielded a usable annual USD fact.
+        candidate tag yielded a usable annual USD fact, or if the
+        winning fact failed the recency guard.
     """
     expected_unit = _METRIC_UNITS.get(metric)
     if expected_unit is None:
@@ -347,6 +371,26 @@ def _extract_metric(
     # sort ascending on it.
     candidates.sort(key=lambda item: (-item[0].toordinal(), item[1]))
     end_date, _priority, tag_used, fact = candidates[0]
+
+    # Recency guard (T2.0b). Apply only to the winning fact: the sort
+    # above already brought the most recent fact across the whole chain
+    # to position 0, so if *that* fact is stale every other candidate is
+    # at least as old.
+    filing_date_obj = _parse_iso_date(filing_date) if filing_date is not None else None
+    if filing_date is None or filing_date_obj is None:
+        _LOGGER.warning(
+            "filing_date ausente para %s/%s; guard de recencia desactivado",
+            metric, tag_used,
+        )
+    else:
+        delta_days = (filing_date_obj - end_date).days
+        if delta_days > _MAX_FACT_AGE_DAYS:
+            _LOGGER.info(
+                "Métrica %s: fact más reciente (tag=%s, end=%s) está stale "
+                "(%d días tras filing); devolviendo None",
+                metric, tag_used, fact.get("end"), delta_days,
+            )
+            return None
 
     fiscal_year = fact.get("fy")
     accession = fact.get("accn")
@@ -392,6 +436,10 @@ def extract(ingest_output: dict[str, Any]) -> dict[str, Any]:
 
     ticker = ingest_output.get("ticker", "") or ""
     company = ingest_output.get("company", "") or ""
+    raw_filing_date = ingest_output.get("filing_date")
+    filing_date: str | None = (
+        raw_filing_date if isinstance(raw_filing_date, str) else None
+    )
     _LOGGER.info("Extrayendo métricas estructuradas para %s", ticker or "<unknown>")
 
     xbrl_data = ingest_output.get("xbrl_data") or {}
@@ -408,7 +456,7 @@ def extract(ingest_output: dict[str, Any]) -> dict[str, Any]:
     metrics: dict[str, dict[str, Any] | None] = {}
     fiscal_years: list[int] = []
     for metric in GOLD_METRICS:
-        result = _extract_metric(us_gaap, metric)
+        result = _extract_metric(us_gaap, metric, filing_date)
         metrics[metric] = result
         if result is not None and isinstance(result.get("fiscal_year"), int):
             fiscal_years.append(result["fiscal_year"])

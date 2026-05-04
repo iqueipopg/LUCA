@@ -308,6 +308,13 @@ class TestExtractFallbackChain:
         """Pre-2018 filings sometimes only carry the deprecated
         ``SalesRevenueNet`` tag. The third fallback in the chain must
         resolve them.
+
+        Note (T2.0b): the recency guard rejects facts older than 730d
+        relative to ``filing_date``. The fact under test has
+        ``end=2015-09-26``, so the ingest must be dated within the
+        2015–2017 window for the fallback to be exercised — otherwise
+        the guard correctly drops it as stale. We use the actual filing
+        date of Apple's 10-K FY2015 (2015-10-28).
         """
         from agents.agent3_extractor import extract
 
@@ -326,7 +333,9 @@ class TestExtractFallbackChain:
             }
         )
 
-        result = extract(_make_ingest(xbrl_data=xbrl))
+        ingest = _make_ingest(xbrl_data=xbrl)
+        ingest["filing_date"] = "2015-10-28"
+        result = extract(ingest)
 
         revenue = result["metrics"]["revenue"]
         assert revenue is not None
@@ -1050,3 +1059,310 @@ class TestExtractSyntheticEdgeCases:
         assert result["metrics"]["total_equity"] is None
         assert result["metrics"]["eps_diluted"] is None
         assert result["fiscal_year"] is None
+
+
+# ---------------------------------------------------------------------------
+# T2.0b — Recency guard tests
+# ---------------------------------------------------------------------------
+
+import json
+from pathlib import Path
+
+_STALE_FIXTURE_PATH = Path(__file__).resolve().parent / "fixtures" / "companyfacts_stale.json"
+
+
+def _load_stale_fixture() -> dict:
+    """Load the stale fixture from disk (companyfacts_stale.json)."""
+    with _STALE_FIXTURE_PATH.open("r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+class TestRecencyGuard:
+    """Tests for the T2.0b recency guard in _extract_metric.
+
+    The guard rejects winning facts whose ``(filing_date - end_date).days``
+    exceeds ``_MAX_FACT_AGE_DAYS`` (730). When ``filing_date`` is ``None``
+    or malformed the guard is disabled and the fact is returned as-is
+    (with a WARNING log). All tests in this class use the
+    ``companyfacts_stale.json`` fixture (single tag ``OperatingIncomeLoss``,
+    single fact ``end=2014-12-31``) unless stated otherwise.
+    """
+
+    def test_stale_fact_rejected_when_filing_recent(self):
+        """A fact with end=2014-12-31 is stale relative to filing_date=2025-02-01.
+
+        The delta is ~3684 days, far beyond the 730-day threshold, so
+        operating_income must be None. The other five metrics are also None
+        because the stale fixture only contains OperatingIncomeLoss — that is
+        expected and intentional; the test focuses on operating_income.
+        """
+        from agents.agent3_extractor import extract
+
+        fixture = _load_stale_fixture()
+        ingest = {
+            "company": "Stale Filer Fixture Inc.",
+            "ticker": "STALE",
+            "filing_date": "2025-02-01",
+            "html_content": "",
+            "xbrl_data": fixture,
+            "accession_number": None,
+            "cik": "9999999999",
+            "source_urls": {},
+        }
+
+        result = extract(ingest)
+
+        # Primary assertion: stale fact rejected
+        assert result["metrics"]["operating_income"] is None, (
+            "operating_income debe ser None: fact end=2014-12-31 es stale "
+            "respecto a filing_date=2025-02-01 (>730 dias)"
+        )
+        # The other metrics are also None because the fixture only contains
+        # OperatingIncomeLoss — this is expected, not a guard failure.
+        assert result["metrics"]["revenue"] is None
+        assert result["metrics"]["net_income"] is None
+        assert result["metrics"]["total_assets"] is None
+        assert result["metrics"]["total_equity"] is None
+        assert result["metrics"]["eps_diluted"] is None
+
+    def test_stale_fact_accepted_when_filing_date_is_none(self):
+        """Guard is disabled when filing_date is None.
+
+        The stale fact (end=2014-12-31) must be returned as-is because the
+        guard cannot fire without a reference date. A WARNING containing
+        'filing_date ausente' must be emitted.
+
+        Note: agents._logging uses ``propagate=False`` so pytest caplog
+        cannot capture the record via the root logger. We mock _LOGGER.warning
+        directly to verify the call without touching infrastructure code.
+        """
+        from unittest.mock import patch
+
+        from agents.agent3_extractor import extract
+
+        fixture = _load_stale_fixture()
+        ingest = {
+            "company": "Stale Filer Fixture Inc.",
+            "ticker": "STALE",
+            "filing_date": None,
+            "html_content": "",
+            "xbrl_data": fixture,
+            "accession_number": None,
+            "cik": "9999999999",
+            "source_urls": {},
+        }
+
+        with patch("agents.agent3_extractor._LOGGER") as mock_logger:
+            result = extract(ingest)
+
+        assert result["metrics"]["operating_income"] is not None, (
+            "operating_income debe resolverse cuando filing_date=None "
+            "(guard desactivado)"
+        )
+        assert result["metrics"]["operating_income"]["value"] == 21590000000.0
+        # Verify that warning was called with a message containing 'filing_date ausente'
+        warning_calls = [str(call) for call in mock_logger.warning.call_args_list]
+        assert any("filing_date ausente" in c for c in warning_calls), (
+            f"Se esperaba un _LOGGER.warning con 'filing_date ausente', "
+            f"llamadas recibidas: {warning_calls}"
+        )
+
+    def test_stale_fact_accepted_when_filing_date_malformed(self):
+        """Guard is disabled when filing_date is an unparseable string.
+
+        The stale fact must be returned (guard cannot fire), and a WARNING
+        must be logged — same behaviour as the None case.
+
+        Note: agents._logging uses ``propagate=False`` so pytest caplog
+        cannot capture the record via the root logger. We mock _LOGGER.warning
+        directly to verify the call without touching infrastructure code.
+        """
+        from unittest.mock import patch
+
+        from agents.agent3_extractor import extract
+
+        fixture = _load_stale_fixture()
+        ingest = {
+            "company": "Stale Filer Fixture Inc.",
+            "ticker": "STALE",
+            "filing_date": "not-a-date",
+            "html_content": "",
+            "xbrl_data": fixture,
+            "accession_number": None,
+            "cik": "9999999999",
+            "source_urls": {},
+        }
+
+        with patch("agents.agent3_extractor._LOGGER") as mock_logger:
+            result = extract(ingest)
+
+        assert result["metrics"]["operating_income"] is not None, (
+            "operating_income debe resolverse cuando filing_date malformado "
+            "(guard desactivado)"
+        )
+        assert result["metrics"]["operating_income"]["value"] == 21590000000.0
+        warning_calls = [str(call) for call in mock_logger.warning.call_args_list]
+        assert any("filing_date ausente" in c for c in warning_calls), (
+            f"Se esperaba un _LOGGER.warning con 'filing_date ausente', "
+            f"llamadas recibidas: {warning_calls}"
+        )
+
+    def test_fresh_fact_accepted_under_guard(self, companyfacts_aapl):
+        """Happy-path: guard does not reject fresh facts from the AAPL fixture.
+
+        The AAPL fixture's most recent facts end on 2025-09-27. With
+        filing_date=2025-10-31 the delta is 34 days, well within the 730-day
+        window. At least revenue must be extracted successfully.
+        """
+        from agents.agent3_extractor import extract
+
+        ingest = _make_ingest(xbrl_data=companyfacts_aapl)
+        # _make_ingest already sets filing_date="2025-10-31" which is within window
+        result = extract(ingest)
+
+        revenue = result["metrics"]["revenue"]
+        assert revenue is not None, (
+            "revenue no debe ser None para AAPL con filing_date reciente; "
+            "el guard no debe rechazar hechos frescos"
+        )
+        assert isinstance(revenue["value"], float)
+        assert revenue["value"] > 0
+
+    def test_fresh_fact_wins_over_stale_in_same_chain(self):
+        """When the revenue chain has a stale Revenues tag and a fresh ASC-606 tag,
+        the sort-by-recency puts the fresh fact at position 0, the guard passes it,
+        and the stale fact is never even evaluated.
+
+        Chain:
+          - Revenues           end=2014-12-31  (stale, >730d from 2025-02-01)
+          - RevenueFromContractWithCustomerExcludingAssessedTax  end=2024-12-31  (fresh)
+
+        Expected: tag_used == RevenueFromContractWithCustomerExcludingAssessedTax,
+                  value     == 391_035_000_000,
+                  period_end == '2024-12-31'.
+        """
+        from agents.agent3_extractor import extract
+
+        xbrl = _wrap_us_gaap(
+            {
+                "Revenues": {
+                    "USD": [
+                        _annual_usd_fact(
+                            start="2014-01-01",
+                            end="2014-12-31",
+                            val=50_000_000_000,
+                            fy=2014,
+                            accn="stale-accn",
+                        ),
+                    ],
+                },
+                "RevenueFromContractWithCustomerExcludingAssessedTax": {
+                    "USD": [
+                        _annual_usd_fact(
+                            start="2024-01-01",
+                            end="2024-12-31",
+                            val=391_035_000_000,
+                            fy=2024,
+                            accn="fresh-accn",
+                        ),
+                    ],
+                },
+            }
+        )
+
+        ingest = _make_ingest(xbrl_data=xbrl)
+        ingest["filing_date"] = "2025-02-01"
+        result = extract(ingest)
+
+        revenue = result["metrics"]["revenue"]
+        assert revenue is not None, (
+            "revenue no debe ser None: hay un fact fresco en la cadena aunque "
+            "Revenues sea stale"
+        )
+        assert revenue["tag_used"] == "RevenueFromContractWithCustomerExcludingAssessedTax", (
+            f"tag_used incorrecto: {revenue['tag_used']!r}"
+        )
+        assert revenue["value"] == 391_035_000_000.0
+        assert revenue["period_end"] == "2024-12-31"
+
+    def test_just_within_730d_window_accepted(self):
+        """A fact whose end_date is exactly 729 days before filing_date is accepted.
+
+        Boundary condition: delta_days == 729 < _MAX_FACT_AGE_DAYS (730).
+        The guard must NOT reject this fact.
+
+        Uses _MAX_FACT_AGE_DAYS from the module so the test stays valid if
+        the threshold is ever adjusted.
+        """
+        from datetime import date, timedelta
+
+        from agents.agent3_extractor import _MAX_FACT_AGE_DAYS, extract
+
+        filing = date(2025, 2, 1)
+        end = filing - timedelta(days=_MAX_FACT_AGE_DAYS - 1)  # 729 days before
+        start = end - timedelta(days=365)
+
+        xbrl = _wrap_us_gaap(
+            {
+                "Revenues": {
+                    "USD": [
+                        _annual_usd_fact(
+                            start=start.isoformat(),
+                            end=end.isoformat(),
+                            val=100_000_000_000,
+                            fy=end.year,
+                        ),
+                    ],
+                },
+            }
+        )
+
+        ingest = _make_ingest(xbrl_data=xbrl)
+        ingest["filing_date"] = filing.isoformat()
+        result = extract(ingest)
+
+        assert result["metrics"]["revenue"] is not None, (
+            f"revenue no debe ser None: delta={_MAX_FACT_AGE_DAYS - 1}d < "
+            f"_MAX_FACT_AGE_DAYS={_MAX_FACT_AGE_DAYS}"
+        )
+
+    def test_just_outside_730d_window_rejected(self):
+        """A fact whose end_date is exactly 731 days before filing_date is rejected.
+
+        Boundary condition: delta_days == 731 > _MAX_FACT_AGE_DAYS (730).
+        The guard must reject this fact and return None.
+
+        Uses _MAX_FACT_AGE_DAYS from the module so the test stays valid if
+        the threshold is ever adjusted.
+        """
+        from datetime import date, timedelta
+
+        from agents.agent3_extractor import _MAX_FACT_AGE_DAYS, extract
+
+        filing = date(2025, 2, 1)
+        end = filing - timedelta(days=_MAX_FACT_AGE_DAYS + 1)  # 731 days before
+        start = end - timedelta(days=365)
+
+        xbrl = _wrap_us_gaap(
+            {
+                "Revenues": {
+                    "USD": [
+                        _annual_usd_fact(
+                            start=start.isoformat(),
+                            end=end.isoformat(),
+                            val=100_000_000_000,
+                            fy=end.year,
+                        ),
+                    ],
+                },
+            }
+        )
+
+        ingest = _make_ingest(xbrl_data=xbrl)
+        ingest["filing_date"] = filing.isoformat()
+        result = extract(ingest)
+
+        assert result["metrics"]["revenue"] is None, (
+            f"revenue debe ser None: delta={_MAX_FACT_AGE_DAYS + 1}d > "
+            f"_MAX_FACT_AGE_DAYS={_MAX_FACT_AGE_DAYS}"
+        )
