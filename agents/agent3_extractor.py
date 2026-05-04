@@ -112,6 +112,46 @@ _LOGGER = get_logger(__name__)
 #:     ``IncomeLossFromContinuingOperationsPerDilutedShare`` is a rarer
 #:     fallback for companies that report only the continuing-ops EPS line
 #:     (e.g. mid-restructuring filers). Kept as best-effort.
+#:   * ``cash`` (T2.0c) —
+#:     ``CashAndCashEquivalentsAtCarryingValue`` is the standard post-2009
+#:     US-GAAP element for the "Cash and cash equivalents" balance-sheet
+#:     line. It captures the broader scope: physical cash plus highly
+#:     liquid instruments with original maturities of three months or
+#:     less (T-bills, money market funds, commercial paper), which is
+#:     what filers report on the balance sheet under that caption. The
+#:     fallback ``Cash`` is the strict "cash only" element used by some
+#:     legacy filers (pre-2009) or by filers who keep equivalents on a
+#:     separate line; it under-states liquidity relative to the preferred
+#:     tag. Order matters: when both tags coexist (the same legacy filer
+#:     that kept ``Cash`` may still publish the broader element after
+#:     migrating), placing the broader tag first guarantees that we
+#:     always favour the most informative number even though T1.5's
+#:     "most recent across the whole chain" rule typically resolves them
+#:     by recency. This is a balance-sheet element ("instant"): facts
+#:     have ``end`` only — no ``start`` — and ``_is_annual_fact``
+#:     accepts that shape.
+#:   * ``long_term_debt`` (T2.0c) —
+#:     ``LongTermDebtNoncurrent`` is the strict non-current portion of
+#:     long-term debt — the fraction maturing beyond twelve months from
+#:     the balance-sheet date. This is the canonical figure most analysts
+#:     mean when they say "long-term debt" and it lines up with the
+#:     non-current liabilities subtotal published in the consolidated
+#:     balance sheet. The fallback ``LongTermDebt`` is the aggregate that
+#:     bundles the current and non-current portions in a single element;
+#:     it appears more often in banking and insurance taxonomies, and in
+#:     a handful of legacy industrials that did not split the current
+#:     portion onto its own line.
+#:     **Banking caveat (SIC 6022):** for commercial banks (e.g. JPM)
+#:     neither tag may be canonical — the banking taxonomy reports
+#:     long-dated obligations under ``LongTermDebt``, ``SubordinatedDebt``,
+#:     ``BeneficialInterestRelatedToOffBalanceSheetSecuritization`` and
+#:     similar SIC-specific elements that we do not chase here.
+#:     ``long_term_debt`` for SIC 6022 filers may therefore resolve to
+#:     ``None`` even after T2.0c. This is a known limitation analogous
+#:     to the JPM/operating_income case (see ``test_jpm_operating_income_is_none_when_tag_absent``);
+#:     a banking-specific extension is out of scope for Sprint 2.
+#:     Like ``cash``, this is a balance-sheet element ("instant") with
+#:     ``end`` only and no ``start``.
 _TAG_CANDIDATES: Final[dict[str, tuple[str, ...]]] = {
     "revenue": (
         "Revenues",
@@ -142,6 +182,15 @@ _TAG_CANDIDATES: Final[dict[str, tuple[str, ...]]] = {
         "EarningsPerShareDiluted",
         "IncomeLossFromContinuingOperationsPerDilutedShare",
     ),
+    # T2.0c — balance-sheet additions.
+    "cash": (
+        "CashAndCashEquivalentsAtCarryingValue",
+        "Cash",
+    ),
+    "long_term_debt": (
+        "LongTermDebtNoncurrent",
+        "LongTermDebt",
+    ),
 }
 
 #: Canonical metric name → expected XBRL unit key. Anything else is filtered
@@ -152,6 +201,8 @@ _METRIC_UNITS: Final[dict[str, str]] = {
     "operating_income": "USD",
     "total_assets": "USD",
     "total_equity": "USD",
+    "cash": "USD",
+    "long_term_debt": "USD",
     "eps_diluted": "USD/shares",
 }
 

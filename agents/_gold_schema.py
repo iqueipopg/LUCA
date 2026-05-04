@@ -32,12 +32,24 @@ GOLD_TICKERS: Final[tuple[str, ...]] = (
 
 #: Metrics annotated for every ticker. Names match the canonical keys used
 #: by L3's US-GAAP mapping table (see T1.3).
+#:
+#: Order rationale (T2.0c, 2026-05-04): the income-statement metrics
+#: come first (revenue → net_income → operating_income), then the
+#: balance-sheet block grouped together (total_assets → total_equity →
+#: cash → long_term_debt), and ``eps_diluted`` closes the list because
+#: it is the only per-share ratio. Adding ``cash`` and ``long_term_debt``
+#: contiguous to the other balance-sheet metrics keeps the visual flow
+#: of the annotation Excel sheet (assets / equity / cash / debt are
+#: read together when locating the consolidated balance sheet) and
+#: leaves ``eps_diluted`` last as the natural "summary" line.
 GOLD_METRICS: Final[tuple[str, ...]] = (
     "revenue",
     "net_income",
     "operating_income",
     "total_assets",
     "total_equity",
+    "cash",
+    "long_term_debt",
     "eps_diluted",
 )
 
@@ -78,6 +90,8 @@ EXPECTED_UNITS: Final[dict[str, str]] = {
     "operating_income": "USD",
     "total_assets": "USD",
     "total_equity": "USD",
+    "cash": "USD",
+    "long_term_debt": "USD",
     "eps_diluted": "USD/share",
 }
 

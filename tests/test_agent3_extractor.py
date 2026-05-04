@@ -693,8 +693,18 @@ class TestExtractMsftFixture:
     """
 
     def test_msft_extracts_six_metrics_with_recent_fy(self, companyfacts_msft):
-        """extract() con el fixture MSFT debe poblar las 6 metricas con valor
-        numerico, todas del mismo FY reciente, y todos los tag_used documentados.
+        """extract() con el fixture MSFT debe poblar las 6 metricas Sprint-1 con
+        valor numerico, todas del mismo FY reciente, y todos los tag_used
+        documentados.
+
+        Nota T2.0c: el fixture MSFT se generó antes de T2.0c y no contiene
+        los tags nuevos ``CashAndCashEquivalentsAtCarryingValue`` ni
+        ``LongTermDebtNoncurrent`` (ver `tests/fixtures/_generate_companyfacts.py`,
+        que solo se ejecutó para AAPL post-T2.0c). Por eso este test sigue
+        validando solo las 6 métricas Sprint-1; ``cash`` y ``long_term_debt``
+        resolverán a ``None`` con este fixture y se cubrirán cuando el
+        fixture se regenere o vía tests sintéticos en el siguiente turno
+        de .
 
         Valores esperados (FY2025, period_end 2025-06-30):
           revenue     : 281_724_000_000  tag RevenueFromContractWithCustomerExcludingAssessedTax
@@ -716,7 +726,15 @@ class TestExtractMsftFixture:
 
         assert set(result["metrics"].keys()) == set(GOLD_METRICS)
 
-        for metric in GOLD_METRICS:
+        sprint1_metrics = (
+            "revenue",
+            "net_income",
+            "operating_income",
+            "total_assets",
+            "total_equity",
+            "eps_diluted",
+        )
+        for metric in sprint1_metrics:
             entry = result["metrics"][metric]
             assert entry is not None, f"{metric} no debe ser None para MSFT"
             assert isinstance(entry["value"], float), (
@@ -727,7 +745,7 @@ class TestExtractMsftFixture:
             assert entry["unit"] in {"USD", "USD/shares"}
 
         # Fiscal year no-calendario: periodo termina en junio
-        for metric in GOLD_METRICS:
+        for metric in sprint1_metrics:
             assert result["metrics"][metric]["period_end"].endswith("-06-30"), (
                 f"MSFT {metric}: period_end debe ser fin de junio (fiscal year Jul-Jun), "
                 f"fue {result['metrics'][metric]['period_end']!r}"
@@ -1366,3 +1384,338 @@ class TestRecencyGuard:
             f"revenue debe ser None: delta={_MAX_FACT_AGE_DAYS + 1}d > "
             f"_MAX_FACT_AGE_DAYS={_MAX_FACT_AGE_DAYS}"
         )
+
+
+# ---------------------------------------------------------------------------
+# T2.0c — cash and long_term_debt (balance-sheet / instant facts)
+# ---------------------------------------------------------------------------
+
+
+def _instant_usd_fact(
+    *,
+    end: str,
+    val: float,
+    fy: int,
+    accn: str = "0000000000-00-000000",
+    filed: str | None = None,
+) -> dict[str, Any]:
+    """Build a minimal instant (balance-sheet) 10-K USD fact.
+
+    Balance-sheet facts have no ``start`` field; only ``end`` is present.
+    ``filed`` defaults to ``end`` when omitted.
+    """
+    return {
+        "end": end,
+        "val": val,
+        "accn": accn,
+        "fy": fy,
+        "fp": "FY",
+        "form": "10-K",
+        "filed": filed if filed is not None else end,
+    }
+
+
+class TestCashExtraction:
+    """T2.0c — unit tests for the ``cash`` metric.
+
+    ``cash`` maps to:
+      preferred : CashAndCashEquivalentsAtCarryingValue
+      fallback  : Cash
+
+    Both are balance-sheet ("instant") tags: facts have ``end`` only,
+    no ``start``.
+    """
+
+    def test_cash_uses_preferred_tag(self, companyfacts_aapl):
+        """Happy-path: AAPL fixture resolves cash via the preferred tag.
+
+        The AAPL fixture carries ``CashAndCashEquivalentsAtCarryingValue``
+        with a fresh FY2025 fact (end=2025-09-27, val=35_934_000_000).
+        T1.5 picks the most recent fact across the whole chain; the FY2025
+        fact beats all prior annual facts.
+        The extractor must select it and report tag_used, value, and unit
+        correctly.
+        """
+        from agents.agent3_extractor import extract
+
+        result = extract(_make_ingest(xbrl_data=companyfacts_aapl))
+
+        cash = result["metrics"]["cash"]
+        assert cash is not None, "cash no debe ser None para AAPL fixture"
+        assert cash["tag_used"] == "CashAndCashEquivalentsAtCarryingValue", (
+            f"tag_used incorrecto: {cash['tag_used']!r}"
+        )
+        assert cash["value"] == 35_934_000_000.0, (
+            f"value incorrecto: {cash['value']}"
+        )
+        assert cash["unit"] == "USD"
+        assert cash["period_end"] == "2025-09-27"
+
+    def test_cash_falls_back_to_cash_tag_when_cce_absent(self):
+        """Fallback: when only the ``Cash`` tag is present, it must be used.
+
+        Synthetic fixture with a single ``Cash`` instant fact.
+        ``CashAndCashEquivalentsAtCarryingValue`` is absent.
+        """
+        from agents.agent3_extractor import extract
+
+        xbrl = _wrap_us_gaap(
+            {
+                "Cash": {
+                    "USD": [
+                        _instant_usd_fact(
+                            end="2024-12-31",
+                            val=10_000_000_000.0,
+                            fy=2024,
+                            filed="2025-02-01",
+                        ),
+                    ],
+                },
+            }
+        )
+
+        ingest = _make_ingest(xbrl_data=xbrl)
+        ingest["filing_date"] = "2025-02-01"
+        result = extract(ingest)
+
+        cash = result["metrics"]["cash"]
+        assert cash is not None, "cash no debe ser None cuando Cash tag esta presente"
+        assert cash["tag_used"] == "Cash", (
+            f"tag_used debe ser 'Cash', fue {cash['tag_used']!r}"
+        )
+        assert cash["value"] == 10_000_000_000.0
+        assert cash["unit"] == "USD"
+        assert cash["period_end"] == "2024-12-31"
+
+    def test_cash_returns_none_when_neither_tag_present(self):
+        """None path: neither ``CashAndCashEquivalentsAtCarryingValue`` nor
+        ``Cash`` is present in the XBRL data.
+
+        Reuses the stale fixture (only contains OperatingIncomeLoss) as a
+        convenient stand-in for a fixture without cash tags.
+        """
+        from agents.agent3_extractor import extract
+
+        fixture = _load_stale_fixture()
+        ingest = {
+            "company": "Stale Filer Fixture Inc.",
+            "ticker": "STALE",
+            "filing_date": "2025-02-01",
+            "html_content": "",
+            "xbrl_data": fixture,
+            "accession_number": None,
+            "cik": "9999999999",
+            "source_urls": {},
+        }
+
+        result = extract(ingest)
+
+        assert result["metrics"]["cash"] is None, (
+            "cash debe ser None cuando ninguno de los dos tags esta presente"
+        )
+
+
+class TestLongTermDebtExtraction:
+    """T2.0c — unit tests for the ``long_term_debt`` metric.
+
+    ``long_term_debt`` maps to:
+      preferred : LongTermDebtNoncurrent
+      fallback  : LongTermDebt
+
+    Both are balance-sheet ("instant") tags.
+    """
+
+    def test_long_term_debt_uses_preferred_tag(self, companyfacts_aapl):
+        """Happy-path: AAPL fixture resolves long_term_debt via the preferred tag.
+
+        The AAPL fixture carries ``LongTermDebtNoncurrent`` with a fresh
+        FY2025 fact (end=2025-09-27, val=78_328_000_000). T1.5 picks
+        the most recent fact across the whole chain; the FY2025 fact beats
+        all prior annual facts.
+        The extractor must select it and report tag_used, value, and unit
+        correctly.
+        """
+        from agents.agent3_extractor import extract
+
+        result = extract(_make_ingest(xbrl_data=companyfacts_aapl))
+
+        ltd = result["metrics"]["long_term_debt"]
+        assert ltd is not None, "long_term_debt no debe ser None para AAPL fixture"
+        assert ltd["tag_used"] == "LongTermDebtNoncurrent", (
+            f"tag_used incorrecto: {ltd['tag_used']!r}"
+        )
+        assert ltd["value"] == 78_328_000_000.0, (
+            f"value incorrecto: {ltd['value']}"
+        )
+        assert ltd["unit"] == "USD"
+        assert ltd["period_end"] == "2025-09-27"
+
+    def test_long_term_debt_falls_back_to_long_term_debt_tag(self):
+        """Fallback: when only the ``LongTermDebt`` tag is present, it must be used.
+
+        Synthetic fixture with a single ``LongTermDebt`` instant fact.
+        ``LongTermDebtNoncurrent`` is absent.
+        """
+        from agents.agent3_extractor import extract
+
+        xbrl = _wrap_us_gaap(
+            {
+                "LongTermDebt": {
+                    "USD": [
+                        _instant_usd_fact(
+                            end="2024-12-31",
+                            val=50_000_000_000.0,
+                            fy=2024,
+                            filed="2025-02-01",
+                        ),
+                    ],
+                },
+            }
+        )
+
+        ingest = _make_ingest(xbrl_data=xbrl)
+        ingest["filing_date"] = "2025-02-01"
+        result = extract(ingest)
+
+        ltd = result["metrics"]["long_term_debt"]
+        assert ltd is not None, (
+            "long_term_debt no debe ser None cuando LongTermDebt tag esta presente"
+        )
+        assert ltd["tag_used"] == "LongTermDebt", (
+            f"tag_used debe ser 'LongTermDebt', fue {ltd['tag_used']!r}"
+        )
+        assert ltd["value"] == 50_000_000_000.0
+        assert ltd["unit"] == "USD"
+        assert ltd["period_end"] == "2024-12-31"
+
+    def test_long_term_debt_returns_none_when_neither_tag_present(self):
+        """None path: neither ``LongTermDebtNoncurrent`` nor ``LongTermDebt``
+        is present in the XBRL data.
+
+        Reuses the stale fixture (only contains OperatingIncomeLoss) as a
+        convenient stand-in for a fixture without long_term_debt tags.
+        """
+        from agents.agent3_extractor import extract
+
+        fixture = _load_stale_fixture()
+        ingest = {
+            "company": "Stale Filer Fixture Inc.",
+            "ticker": "STALE",
+            "filing_date": "2025-02-01",
+            "html_content": "",
+            "xbrl_data": fixture,
+            "accession_number": None,
+            "cik": "9999999999",
+            "source_urls": {},
+        }
+
+        result = extract(ingest)
+
+        assert result["metrics"]["long_term_debt"] is None, (
+            "long_term_debt debe ser None cuando ninguno de los dos tags esta presente"
+        )
+
+    def test_long_term_debt_stale_preferred_yields_none_when_fallback_also_absent(self):
+        """KO-style case: preferred tag is stale, fallback tag is absent.
+
+        Replicates the empirically observed KO failure mode reported by
+        : ``LongTermDebtNoncurrent`` with end=2023-01-01 is
+        >730d from filing_date=2025-10-15 (delta ~653 days... wait,
+        2023-01-01 to 2025-10-15 is ~652d — under 730). We use
+        end=2023-01-01 and filing_date=2025-10-15 — delta is ~652d which
+        is within the window. Instead we need end far enough before
+        filing_date: end=2023-01-01 with filing_date=2025-10-15 gives
+        ~652 days, below the 730d threshold. To exceed the threshold,
+        use end=2023-01-01 with filing_date=2025-10-15 we need at least
+        731d gap: filing_date=2025-10-15 minus 731d = ~2023-09-14, so
+        end=2023-01-01 IS >730d (end to filing: 652d — actually less).
+
+        Re-calculation: 2025-10-15 - 2023-01-01 = 2 years 9 months 14 days.
+        2023 is not a leap year: 365 days. 2024 is leap: 366. From Jan 1
+        2023 to Jan 1 2025 = 730 days. Jan 1 2025 to Oct 15 2025 = 287d.
+        Total = 1017d. So end=2023-01-01, filing=2025-10-15 -> delta=1017d > 730.
+
+        Verifies that T2.0b recency guard + T2.0c chain interaction is
+        correct: stale preferred, absent fallback -> None.
+        """
+        from agents.agent3_extractor import extract
+
+        xbrl = _wrap_us_gaap(
+            {
+                "LongTermDebtNoncurrent": {
+                    "USD": [
+                        _instant_usd_fact(
+                            end="2023-01-01",
+                            val=80_000_000_000.0,
+                            fy=2022,
+                            filed="2023-02-10",
+                        ),
+                    ],
+                },
+                # LongTermDebt (fallback) is intentionally absent
+            }
+        )
+
+        ingest = _make_ingest(xbrl_data=xbrl)
+        ingest["filing_date"] = "2025-10-15"
+        result = extract(ingest)
+
+        assert result["metrics"]["long_term_debt"] is None, (
+            "long_term_debt debe ser None: el preferred tag (LongTermDebtNoncurrent) "
+            "es stale (end=2023-01-01, filing=2025-10-15, delta>730d) y el fallback "
+            "LongTermDebt esta ausente"
+        )
+
+    def test_long_term_debt_fresh_fallback_wins_over_stale_preferred(self):
+        """Recency + fallback interaction: fresh fallback beats stale preferred.
+
+        Synthetic fixture:
+          - LongTermDebtNoncurrent  end=2018-12-31  (stale, >730d from filing)
+          - LongTermDebt            end=2024-12-31  (fresh)
+
+        T1.5 sorts all candidates by end date descending; the fresh fact
+        lands at position 0. The recency guard accepts it (delta ~33d from
+        filing=2025-02-01). Result must use LongTermDebt.
+        """
+        from agents.agent3_extractor import extract
+
+        xbrl = _wrap_us_gaap(
+            {
+                "LongTermDebtNoncurrent": {
+                    "USD": [
+                        _instant_usd_fact(
+                            end="2018-12-31",
+                            val=90_000_000_000.0,
+                            fy=2018,
+                            filed="2019-02-15",
+                        ),
+                    ],
+                },
+                "LongTermDebt": {
+                    "USD": [
+                        _instant_usd_fact(
+                            end="2024-12-31",
+                            val=45_000_000_000.0,
+                            fy=2024,
+                            filed="2025-02-01",
+                        ),
+                    ],
+                },
+            }
+        )
+
+        ingest = _make_ingest(xbrl_data=xbrl)
+        ingest["filing_date"] = "2025-02-01"
+        result = extract(ingest)
+
+        ltd = result["metrics"]["long_term_debt"]
+        assert ltd is not None, (
+            "long_term_debt no debe ser None: LongTermDebt es fresco aunque "
+            "LongTermDebtNoncurrent sea stale"
+        )
+        assert ltd["tag_used"] == "LongTermDebt", (
+            f"tag_used debe ser 'LongTermDebt' (fresh fallback), "
+            f"fue {ltd['tag_used']!r}"
+        )
+        assert ltd["value"] == 45_000_000_000.0
+        assert ltd["period_end"] == "2024-12-31"

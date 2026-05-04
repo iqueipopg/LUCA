@@ -98,9 +98,14 @@ class TestInit:
         )
         assert header == GOLD_COLUMNS
 
-        # Exactly GOLD_ROW_COUNT data rows after the header.
+        # Exactly GOLD_ROW_COUNT data rows after the header. The literal
+        # equals ``len(GOLD_TICKERS) * len(GOLD_METRICS)`` so the test
+        # tracks the schema automatically as new metrics are added (T2.0c
+        # extended GOLD_METRICS from 6 to 8, raising the row count from
+        # 60 to 80).
         data_rows = sheet.max_row - 1
-        assert data_rows == GOLD_ROW_COUNT == 60
+        assert data_rows == GOLD_ROW_COUNT
+        assert GOLD_ROW_COUNT == len(GOLD_TICKERS) * len(GOLD_METRICS)
 
         # Every (ticker, metric) pair appears exactly once and the rest of
         # the columns are empty (no pre-fill).
