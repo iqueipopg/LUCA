@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0",
+  "agent": "L4",
+  "ticker": "AAPL",
+  "filing_accession": "0000320193-25-000123",
+  "filing_date": "2025-11-02",
+  "extracted_at": "2026-05-04T15:23:00Z",
+  "model": {
+    "name": "qwen2.5:7b-instruct-q4_K_M",
+    "temperature": 0.1,
+    "seed": 42
+  },
+  "chunks": [
+    {
+      "chunk_id": "1A_001",
+      "item": "1A",
+      "offset_start": 0,
+      "offset_end": 8412,
+      "subheader": "Macroeconomic and geopolitical conditions"
+    },
+    {
+      "chunk_id": "7_001",
+      "item": "7",
+      "offset_start": 0,
+      "offset_end": 5120,
+      "subheader": "Overview"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-AAPL-001",
+      "title": "Macroeconomic and geopolitical conditions",
+      "summary": "Las recesiones globales y las tensiones geopoliticas pueden reducir la demanda de productos de la Compania.",
+      "literal_quote": "A significant portion of the Company's net sales is generated outside of the United States, which exposes the Company to economic and political conditions in foreign markets.",
+      "source_chunk_id": "1A_001"
+    },
+    {
+      "id": "R-AAPL-001",
+      "title": "Foreign exchange volatility",
+      "summary": "La fortaleza del dolar estadounidense puede presionar los margenes en mercados internacionales.",
+      "literal_quote": "Weakness in foreign currencies relative to the U.S. dollar adversely affects the U.S. dollar value of the Company's foreign currency-denominated sales.",
+      "source_chunk_id": "1A_001"
+    }
+  ],
+  "forward_looking": [
+    {
+      "id": "FL-AAPL-001",
+      "text": "The Company expects gross margin to improve modestly in fiscal 2026 driven by Services mix.",
+      "time_horizon": "next_fy",
+      "hedge_strength": "medium",
+      "source_chunk_id": "7_001"
+    },
+    {
+      "id": "FL-AAPL-002",
+      "text": "Management anticipates continued investment in R&D over the next 3 to 5 years.",
+      "time_horizon": "medium_3_5y",
+      "hedge_strength": "low",
+      "source_chunk_id": "7_001"
+    }
+  ],
+  "management_tone": {
+    "score": 4,
+    "label": "cautiously_optimistic",
+    "rationale": "Tono predominantemente positivo en perspectivas de Services y margenes, con menciones explicitas de incertidumbre en hardware sales y FX.",
+    "evidence_quotes": [
+      {"text": "We are confident in our ability to drive long-term growth.", "source_chunk_id": "7_001"},
+      {"text": "However, foreign exchange volatility may continue to pressure reported revenue.", "source_chunk_id": "7_001"}
+    ]
+  },
+  "meta": {
+    "chunks_processed": 2,
+    "chunks_with_risks": 1,
+    "total_input_tokens_estimated": 13532,
+    "warnings": []
+  }
+}
