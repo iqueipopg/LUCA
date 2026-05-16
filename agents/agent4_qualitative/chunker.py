@@ -83,7 +83,7 @@ _REPETITION_MAX: int = 3
 _ANTI_FP_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"^\d+$"),
     re.compile(r"^Page\s+\d+$", re.IGNORECASE),
-    re.compile(r"^Part\s+[IVX]+(\s+and\s+[IVX]+)?$", re.IGNORECASE),
+    re.compile(r"^Parts?\s+[IVX]+(\s+and\s+[IVX]+)?$", re.IGNORECASE),
 ]
 
 _WS_RE: re.Pattern[str] = re.compile(r"\s+")
@@ -252,7 +252,7 @@ def _detect_summary(
     item1a_start: int,
     item1a_end: int,
     raw_anchors: list[tuple[int, str]],
-) -> tuple[int | None, int | None]:
+) -> tuple[int | None, int | None, str | None]:
     """Return ``(summary_start, summary_end)`` or ``(None, None)``.
 
     A Summary is detected when a short (≤ 2 words) bold-leading anchor
@@ -299,49 +299,71 @@ def _detect_summary(
             # level-2 anchor after the last bullet IS next_l2_pos when present
             # (no level-2 anchors live inside the candidate range by
             # construction), so reuse it directly.
-            return pos, bullet_range_end
-    return None, None
+            return pos, bullet_range_end, anchor_text
+    return None, None, None
 
 
 def _extract_summary_chunks(
     plain_text: str,
     summary_start: int,
     summary_end: int,
-    ticker: str,
-    fiscal_year: int,
-    counter_start: int,
+    short_header_text: str,
 ) -> list[Chunk]:
-    """Build one :class:`Chunk` per ``•`` bullet inside the Summary range.
+    """Build :class:`Chunk` objects covering ``[summary_start, summary_end]``.
 
-    The label is the first word(s) before ``risks``/``risk`` (case
-    insensitive) or, lacking that, the first word of the bullet.
-    Returned chunks have ``in_summary=True`` and ``anchor_level=1``.
+    The first chunk covers the summary header + intro line (everything
+    before the first ``•``); subsequent chunks are one per bullet. All
+    chunks have ``in_summary=True`` and ``anchor_level=1``. ``chunk_id``
+    is left as the placeholder ``"__pending__"`` — final IDs are
+    assigned by :func:`chunk_item1a` once gaps are filled.
     """
     summary_text = plain_text[summary_start:summary_end]
-    positions: list[int] = []
+    bullet_positions: list[int] = []
     cursor = 0
     while True:
         p = summary_text.find(_BULLET_CHAR, cursor)
         if p < 0:
             break
-        positions.append(p)
+        bullet_positions.append(p)
         cursor = p + 1
-    if not positions:
+    if not bullet_positions:
         return []
 
     chunks: list[Chunk] = []
-    for i, local_start in enumerate(positions):
-        local_end = positions[i + 1] if i + 1 < len(positions) else (summary_end - summary_start)
+
+    intro_end_local = bullet_positions[0]
+    if intro_end_local > 0:
+        intro_text = summary_text[:intro_end_local].strip()
+        if intro_text:
+            chunks.append(
+                Chunk(
+                    chunk_id="__pending__",
+                    text=summary_text[:intro_end_local],
+                    char_start=summary_start,
+                    char_end=summary_start + intro_end_local,
+                    anchor_text=short_header_text,
+                    anchor_level=1,
+                    in_summary=True,
+                    token_estimate=intro_end_local // 4,
+                )
+            )
+
+    for i, local_start in enumerate(bullet_positions):
+        local_end = (
+            bullet_positions[i + 1]
+            if i + 1 < len(bullet_positions)
+            else (summary_end - summary_start)
+        )
         abs_start = summary_start + local_start
         abs_end = summary_start + local_end
-        text = plain_text[abs_start:abs_end].strip()
-        if not text:
+        text = plain_text[abs_start:abs_end]
+        if not text.strip():
             continue
         stripped = text.lstrip(_BULLET_CHAR).strip()
         label = _summary_bullet_label(stripped)
         chunks.append(
             Chunk(
-                chunk_id=_build_chunk_id(ticker, fiscal_year, counter_start + len(chunks)),
+                chunk_id="__pending__",
                 text=text,
                 char_start=abs_start,
                 char_end=abs_end,
@@ -399,15 +421,13 @@ def _build_body_chunks(
     body_anchors: list[tuple[int, str]],
     body_start: int,
     item1a_end: int,
-    ticker: str,
-    fiscal_year: int,
-    counter_start: int,
 ) -> list[Chunk]:
     """Cut ``[body_start, item1a_end]`` into anchor-bounded chunks.
 
-    Pre-anchor content (the Item 1A intro before the first body
-    anchor) becomes an orphan chunk with ``anchor_text=None`` and
-    ``anchor_level=3`` so the chunk set covers 100 % of the range.
+    Pre-anchor content (intro before the first body anchor) becomes
+    an orphan chunk with ``anchor_text=None`` and ``anchor_level=3``.
+    ``chunk_id`` is left as ``"__pending__"`` — final IDs are
+    assigned by :func:`chunk_item1a` once gaps are filled.
     """
     chunks: list[Chunk] = []
 
@@ -416,7 +436,7 @@ def _build_body_chunks(
         if text.strip():
             chunks.append(
                 Chunk(
-                    chunk_id=_build_chunk_id(ticker, fiscal_year, counter_start),
+                    chunk_id="__pending__",
                     text=text,
                     char_start=body_start,
                     char_end=item1a_end,
@@ -434,7 +454,7 @@ def _build_body_chunks(
         if intro_text.strip():
             chunks.append(
                 Chunk(
-                    chunk_id=_build_chunk_id(ticker, fiscal_year, counter_start + len(chunks)),
+                    chunk_id="__pending__",
                     text=intro_text,
                     char_start=body_start,
                     char_end=first_pos,
@@ -452,7 +472,7 @@ def _build_body_chunks(
             continue
         chunks.append(
             Chunk(
-                chunk_id=_build_chunk_id(ticker, fiscal_year, counter_start + len(chunks)),
+                chunk_id="__pending__",
                 text=text,
                 char_start=pos,
                 char_end=next_pos,
@@ -476,7 +496,9 @@ def _split_oversized(
     ``_SUBCHUNK_TARGET_CHARS`` within the chunk, with
     ``_SUBCHUNK_OVERLAP_CHARS`` of text overlap between consecutive
     sub-chunks. A hard cut to ``_HARD_CUT_CHARS`` is applied if a
-    sub-chunk is still oversized; a warning is appended.
+    sub-chunk is still oversized; a warning is appended. Sub-chunks
+    keep ``chunk_id="__pending__"`` because :func:`chunk_item1a`
+    renumbers everything sequentially in a single final pass.
     """
     if len(chunk.text) <= _MAX_CHUNK_CHARS:
         return [chunk]
@@ -491,7 +513,6 @@ def _split_oversized(
                 boundaries.append(closest)
                 target = closest + _SUBCHUNK_TARGET_CHARS
                 continue
-        # No usable div boundary; fall back to a clean text cut at the target.
         if not boundaries or target > boundaries[-1]:
             boundaries.append(target)
         target += _SUBCHUNK_TARGET_CHARS
@@ -508,12 +529,11 @@ def _split_oversized(
             text = text[:_HARD_CUT_CHARS]
             end = start + _HARD_CUT_CHARS
             warnings_list.append(
-                f"Hard cut to {_HARD_CUT_CHARS} chars on sub-chunk derived from {chunk.chunk_id}"
+                f"Hard cut to {_HARD_CUT_CHARS} chars while sub-chunking an oversized chunk"
             )
-        suffix = chr(ord("a") + i)
         sub_chunks.append(
             Chunk(
-                chunk_id=f"{chunk.chunk_id}{suffix}",
+                chunk_id="__pending__",
                 text=text,
                 char_start=start,
                 char_end=end,
@@ -562,45 +582,124 @@ def chunk_item1a(
 
     warnings_list: list[str] = []
 
-    summary_start, summary_end = _detect_summary(
+    summary_start, summary_end, short_header_text = _detect_summary(
         plain_text, item1a_start, item1a_end, raw_anchors,
     )
 
-    summary_chunks: list[Chunk] = []
+    summary_chunks_raw: list[Chunk] = []
     body_start = item1a_start
     if summary_start is not None and summary_end is not None:
-        summary_chunks = _extract_summary_chunks(
-            plain_text, summary_start, summary_end, ticker, fiscal_year,
-            counter_start=1,
+        summary_chunks_raw = _extract_summary_chunks(
+            plain_text, summary_start, summary_end, short_header_text or "Summary",
         )
-        body_start = summary_end
-        if not summary_chunks:
+        if summary_chunks_raw:
+            body_start = summary_end
+        else:
             warnings_list.append(
-                "Summary header detected but no bullets resolved into chunks; reverting body_start."
+                "Summary header detected but no bullets resolved into chunks; "
+                "treating range as body."
             )
-            body_start = item1a_start
+            summary_start = None
+
+    pre_summary_chunk: Chunk | None = None
+    if summary_start is not None and summary_start > item1a_start:
+        pre_text = plain_text[item1a_start:summary_start]
+        if pre_text.strip():
+            pre_summary_chunk = Chunk(
+                chunk_id="__pending__",
+                text=pre_text,
+                char_start=item1a_start,
+                char_end=summary_start,
+                anchor_text=None,
+                anchor_level=3,
+                in_summary=False,
+                token_estimate=len(pre_text) // 4,
+            )
 
     body_anchors = _filter_body_anchors(
         raw_anchors, plain_text, body_start, item1a_end,
     )
     if not body_anchors:
         warnings_list.append(
-            "No body sub-headers passed cotas/anti-FP filters; falling back to length-only chunking."
+            "No body sub-headers passed cotas/anti-FP filters; "
+            "falling back to length-only chunking."
         )
-
-    body_chunks = _build_body_chunks(
-        plain_text, body_anchors, body_start, item1a_end, ticker, fiscal_year,
-        counter_start=len(summary_chunks) + 1,
+    body_chunks_raw = _build_body_chunks(
+        plain_text, body_anchors, body_start, item1a_end,
     )
+    if pre_summary_chunk is not None:
+        body_chunks_raw.insert(0, pre_summary_chunk)
 
+    # Length fallback per chunk. Each parent chunk either stays as one
+    # chunk (singleton) or fans out into a sibling group of sub-chunks.
+    Item = Chunk | list[Chunk]
+    items: list[Item] = []
+    for ch in summary_chunks_raw + body_chunks_raw:
+        splits = _split_oversized(ch, div_positions, warnings_list)
+        items.append(splits[0] if len(splits) == 1 else splits)
+
+    def _item_start(item: Item) -> int:
+        return item[0].char_start if isinstance(item, list) else item.char_start
+
+    def _item_end(item: Item) -> int:
+        return item[-1].char_end if isinstance(item, list) else item.char_end
+
+    items.sort(key=_item_start)
+
+    # Gap-filling pass: ensure the union of chunk ranges covers
+    # [item1a_start, item1a_end] exactly.
+    filled: list[Item] = []
+    cursor = item1a_start
+    for item in items:
+        start = _item_start(item)
+        if start > cursor:
+            gap_text = plain_text[cursor:start]
+            if gap_text.strip():
+                filled.append(
+                    Chunk(
+                        chunk_id="__pending__",
+                        text=gap_text,
+                        char_start=cursor,
+                        char_end=start,
+                        anchor_text=None,
+                        anchor_level=3,
+                        in_summary=False,
+                        token_estimate=len(gap_text) // 4,
+                    )
+                )
+        filled.append(item)
+        cursor = max(cursor, _item_end(item))
+    if cursor < item1a_end:
+        tail_text = plain_text[cursor:item1a_end]
+        if tail_text.strip():
+            filled.append(
+                Chunk(
+                    chunk_id="__pending__",
+                    text=tail_text,
+                    char_start=cursor,
+                    char_end=item1a_end,
+                    anchor_text=None,
+                    anchor_level=3,
+                    in_summary=False,
+                    token_estimate=len(tail_text) // 4,
+                )
+            )
+
+    # Assign sequential chunk_ids. Sub-chunk groups share a parent number
+    # and use lowercase suffixes per spec example (`_001a`, `_001b`, ...).
     summary_chunks_final: list[Chunk] = []
-    for ch in summary_chunks:
-        summary_chunks_final.extend(_split_oversized(ch, div_positions, warnings_list))
     body_chunks_final: list[Chunk] = []
-    for ch in body_chunks:
-        body_chunks_final.extend(_split_oversized(ch, div_positions, warnings_list))
+    for idx, item in enumerate(filled, start=1):
+        base_id = _build_chunk_id(ticker, fiscal_year, idx)
+        if isinstance(item, list):
+            for j, sub in enumerate(item):
+                suffix = chr(ord("a") + j)
+                renamed = sub.model_copy(update={"chunk_id": f"{base_id}{suffix}"})
+                (summary_chunks_final if renamed.in_summary else body_chunks_final).append(renamed)
+        else:
+            renamed = item.model_copy(update={"chunk_id": base_id})
+            (summary_chunks_final if renamed.in_summary else body_chunks_final).append(renamed)
 
-    # Hard guarantee re-check (defensive; _split_oversized already enforces it).
     for ch in summary_chunks_final + body_chunks_final:
         if ch.token_estimate > _MAX_CHUNK_CHARS // 4:
             warnings_list.append(
