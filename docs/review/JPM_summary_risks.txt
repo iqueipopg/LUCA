@@ -1,0 +1,80 @@
+--- R-JPM-001 | 1A_002 (subheader: Legal and Regulatory) ---
+TITLE : Riesgos legales y regulatorios
+SUMMARY: Estos incluyen el impacto de la supervisión y regulación extensa, cambios en la aplicación, interpretación o aplicación de la ley, acciones del ejecutivo, diferencias en la implementación regulatoria entre jurisdicciones u competidores, políticas gubernamentales que desalientan o penalizan relaciones comerciales con ciertas industrias, sanciones y otras consecuencias al resolver litigios e investigaciones por autoridades gubernamentales, y pérdidas si JPMorganChase entra en un acuerdo de resolución.
+QUOTE  : Legal and Regulatory risks, including the impact of extensive supervision and regulation, as well as changes to or in the application, interpretation or enforcement of applicable law or executive branch actions, on JPMorganChase’s business and operations; the ways in which differences in regulatory 
+
+--- R-JPM-002 | 1A_003 (subheader: Political) ---
+TITLE : Riesgos políticos
+SUMMARY: Posibles efectos negativos en las operaciones de JPMorgan Chase debido a la incertidumbre económica causada por los desarrollos políticos.
+QUOTE  : Political risks, including the potential negative effects on JPMorganChase’s businesses due to economic uncertainty resulting from political developments.
+
+--- R-JPM-003 | 1A_004 (subheader: Market) ---
+TITLE : Riesgos económicos y de mercado
+SUMMARY: Estos incluyen eventos y condiciones económicas y del mercado desfavorables, desarrollos políticos, cambios en las tasas de interés y las spreads crediticias, así como fluctuaciones en los mercados que podrían afectar a las operaciones, inversiones y posiciones de mercado de JPMorganChase, además de sus ganancias y niveles de liquidez y capital.
+QUOTE  : Market risks, including the effects that unfavorable economic and market events and conditions, political developments, changes in interest rates and credit spreads, and market fluctuations could have on JPMorganChase’s businesses, investments and market-making positions, as well as on its earnings 
+
+--- R-JPM-004 | 1A_005 (subheader: Credit) ---
+TITLE : Riesgo crediticio
+SUMMARY: Existen riesgos crediticios relacionados con las condiciones financieras deterioradas de clientes, compradores, contrapartes y otros participantes del mercado; la posible pérdida debido a una disminución en el valor del colateral; y los posibles impactos negativos por concentraciones de riesgo crediticio.
+QUOTE  : Credit risks, including the effects from adverse changes in the financial condition of clients, customers, counterparties, central counterparties and other market participants; the potential for losses due to declines in the value of collateral; and potential negative impacts from concentrations of 
+
+--- R-JPM-005 | 1A_006 (subheader: Liquidity) ---
+TITLE : Riesgo de liquidez
+SUMMARY: El riesgo de liquidez implica que la capacidad operativa de JPMorgan Chase podría verse comprometida por una restricción en la liquidez, y que depende de sus subsidiarias para financiación. Además, cualquier downgrading en las calificaciones crediticias de JPMorgan Chase podría tener efectos adversos en su liquidez y costo de financiamiento.
+QUOTE  : the risk that JPMorganChase’s ability to operate could be impaired by constrained liquidity; the dependence of JPMorgan Chase & Co. on its subsidiaries for funding; and the potential adverse effects that any downgrades of JPMorganChase’s credit ratings could have on its liquidity and cost of funding
+
+--- R-JPM-006 | 1A_007 (subheader: Capital) ---
+TITLE : Riesgo de capital
+SUMMARY: El riesgo de que las capacidades financieras de JPMorganChase para distribuir dividendos a los accionistas o apoyar sus actividades comerciales sean limitadas si no cumple con los requisitos regulatorios de capital aplicables.
+QUOTE  : the risk that JPMorganChase’s ability to distribute capital to shareholders or to support its business activities could be limited if it does not satisfy applicable regulatory capital requirements.
+
+--- R-JPM-007 | 1A_008 (subheader: Operational) ---
+TITLE : Riesgos operacionales
+SUMMARY: Peligros asociados con la dependencia de JPMorganChase de sus sistemas operativos y empleados, así como los sistemas y empleados de empresas adquiridas y terceros; el daño que podría causar un ataque cibernético exitoso en JPMorganChase o por otros eventos extraordinarios.
+QUOTE  : Operational risks, including risks associated with JPMorganChase’s dependence on its operational systems and its employees, as well as the systems and employees of acquired businesses and external parties; the harm that could be caused by a successful cyber attack affecting JPMorganChase or by other
+
+--- R-JPM-008 | 1A_008 (subheader: Operational) ---
+TITLE : Riesgos de sistemas y empleados
+SUMMARY: Peligros relacionados con la dependencia de los sistemas operativos y empleados de JPMorganChase, incluyendo aquellos de las empresas adquiridas y terceros.
+QUOTE  : risks associated with JPMorganChase’s dependence on its operational systems and its employees, as well as the systems and employees of acquired businesses and external parties
+
+--- R-JPM-009 | 1A_008 (subheader: Operational) ---
+TITLE : Riesgos cibernéticos
+SUMMARY: Peligros asociados con un ataque cibernético exitoso en JPMorganChase o otros eventos extraordinarios.
+QUOTE  : the harm that could be caused by a successful cyber attack affecting JPMorganChase or by other extraordinary events
+
+--- R-JPM-010 | 1A_008 (subheader: Operational) ---
+TITLE : Riesgos de gestión de datos
+SUMMARY: Peligros relacionados con el manejo y protección de los datos personales en JPMorganChase.
+QUOTE  : risks related to safeguarding personal information
+
+--- R-JPM-011 | 1A_008 (subheader: Operational) ---
+TITLE : Riesgos de cumplimiento con estándares de supervisión de proveedores
+SUMMARY: Peligros asociados con la falta de cumplimiento con los estándares para la supervisión de proveedores y otros proveedores de servicios.
+QUOTE  : risks related to the potential adverse effects of failing to comply with applicable standards for the oversight of vendors and other service providers
+
+--- R-JPM-012 | 1A_008 (subheader: Operational) ---
+TITLE : Riesgos del marco de gestión de riesgos
+SUMMARY: Peligros asociados con el marco de gestión de riesgos y entorno de control, modelos y estimaciones utilizados en la prueba de estrés y estados financieros de JPMorganChase, así como controles sobre la divulgación y los informes financieros.
+QUOTE  : risks associated with JPMorganChase’s risk management framework and control environment, its models and estimations and associated judgments used in its stress testing and financial statements, and controls over disclosure and financial reporting
+
+--- R-JPM-013 | 1A_009 (subheader: Strategic) ---
+TITLE : Riesgos estratégicos
+SUMMARY: Estos incluyen el daño a la posición competitiva de JPMorganChase que podría resultar de estrategias comerciales ineficaces; riesgos asociados con la competencia significativa a la que se enfrenta JPMorganChase; y los posibles impactos adversos del cambio climático en las operaciones de JPMorganChase y sus clientes.
+QUOTE  : Strategic risks, including the damage to JPMorganChase’s competitive standing that could result from ineffective business strategies; risks associated with the significant competition that JPMorganChase faces; and the potential adverse impacts of climate change on JPMorganChase’s business and operat
+
+--- R-JPM-014 | 1A_010 (subheader: Conduct) ---
+TITLE : Conduct
+SUMMARY: Riesgo de conducta que podría causar un impacto negativo debido a la mala conducta de los empleados de JPMorganChase.
+QUOTE  : Conduct risks, including the negative impact that could result from misconduct of JPMorganChase’s employees.
+
+--- R-JPM-015 | 1A_011 (subheader: Reputation) ---
+TITLE : Reputación
+SUMMARY: Riesgos de reputación que pueden originarse a partir de decisiones tomadas por JPMorgan Chase relacionadas con clientes y actividades comerciales, así como la incapacidad para manejar eficazmente conflictos de interés o satisfacer obligaciones fiduciarias.
+QUOTE  : Reputation risks, including the potential negative commercial impacts that can arise from JPMorganChase’s decisions related to clients and business activities; and the failure to effectively manage conflicts of interest or to satisfy fiduciary obligations,
+
+--- R-JPM-016 | 1A_012 (subheader: Country) ---
+TITLE : Riesgos por país
+SUMMARY: Incluyen posibles impactos en las operaciones de JPMorganChase debido a un brote o escalada de hostilidades entre países u ocurridas dentro de un país o región, así como los efectos adversos locales en la economía, política, regulación y sociedad que pueden afectar negativamente el negocio de la empresa en ciertos países donde opera.
+QUOTE  : Country risks, including potential impacts on JPMorganChase’s businesses from an outbreak or escalation of hostilities between countries or within a country or region; and the potential adverse effects 9 Part I of local economic, political, regulatory and social factors on JPMorganChase’s business i
+

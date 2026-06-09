@@ -1,0 +1,57 @@
+True | L1 | 1A_001 | JPM_2026_item1a_002 | 0 | Summary
+True | L1 | 1A_002 | JPM_2026_item1a_003 | 1 | Legal and Regulatory
+True | L1 | 1A_003 | JPM_2026_item1a_004 | 1 | Political
+True | L1 | 1A_004 | JPM_2026_item1a_005 | 1 | Market
+True | L1 | 1A_005 | JPM_2026_item1a_006 | 1 | Credit
+True | L1 | 1A_006 | JPM_2026_item1a_007 | 1 | Liquidity
+True | L1 | 1A_007 | JPM_2026_item1a_008 | 1 | Capital
+True | L1 | 1A_008 | JPM_2026_item1a_009 | 6 | Operational
+True | L1 | 1A_009 | JPM_2026_item1a_010 | 1 | Strategic
+True | L1 | 1A_010 | JPM_2026_item1a_011 | 1 | Conduct
+True | L1 | 1A_011 | JPM_2026_item1a_012 | 1 | Reputation
+True | L1 | 1A_012 | JPM_2026_item1a_013 | 1 | Country
+True | L1 | 1A_013 | JPM_2026_item1a_014 | 0 | People
+False | L3 | 1A_014 | JPM_2026_item1a_001 | 0 | None
+False | L2 | 1A_015 | JPM_2026_item1a_015 | 1 | JPMorganChase’s businesses are highly regulated and are significantly affected by applicable law and supervisory expectations.
+False | L2 | 1A_016 | JPM_2026_item1a_016 | 5 | Differences in the supervision and regulation of financial services firms could require JPMorganChase to modify its operations and incur higher operational and compliance costs.
+False | L2 | 1A_017 | JPM_2026_item1a_017 | 1 | JPMorganChase faces significant legal risks from civil and governmental proceedings, including litigation, investigations and enforcement actions.
+False | L2 | 1A_018 | JPM_2026_item1a_018 | 1 | Resolving an investigation by a governmental authority could subject JPMorganChase to significant penalties and other repercussions.
+False | L2 | 1A_019 | JPM_2026_item1a_019 | 1 | JPMorganChase’s compliance risk and operating costs could be higher in jurisdictions with less predictable legal, regulatory and judicial frameworks.
+False | L2 | 1A_020 | JPM_2026_item1a_020 | 1 | JPMorganChase's business and operations could be negatively affected by governmental policies that discourage or penalize doing business with certain industries or that require specific business practices.
+False | L2 | 1A_021 | JPM_2026_item1a_021 | 1 | Changes in the requirements for the regulatory evaluation of JPMorganChase’s resolution plan could increase its funding or operational costs or require restructuring or curtailment of its businesses.
+False | L2 | 1A_022 | JPM_2026_item1a_022 | 1 | Holders of JPMorgan Chase & Co.’s debt and equity securities will absorb losses if it were to enter into a resolution.
+False | L2 | 1A_023 | JPM_2026_item1a_023 | 2 | JPMorganChase’s businesses could be negatively affected by economic uncertainty resulting from political and geopolitical developments.
+False | L2 | 1A_024 | JPM_2026_item1a_024 | 2 | Adverse economic and market events and conditions could negatively affect JPMorganChase’s results of operations and investment and market-making positions.
+False | L2 | 1A_025 | JPM_2026_item1a_025 | 4 | JPMorganChase’s consumer businesses could be negatively affected by adverse economic conditions and adverse impacts of governmental policies.
+False | L2 | 1A_026 | JPM_2026_item1a_026 | 5 | Unfavorable market and economic conditions could adversely affect JPMorganChase’s wholesale businesses.
+False | L2 | 1A_027 | JPM_2026_item1a_027 | 2 | Changes in interest rates and credit spreads could adversely affect JPMorganChase’s earnings or its liquidity and capital levels.
+False | L2 | 1A_028 | JPM_2026_item1a_028 | 4 | JPMorganChase’s results could be materially affected by market fluctuations and significant changes in the valuation of financial instruments.
+False | L2 | 1A_029 | JPM_2026_item1a_029 | 6 | JPMorganChase could be negatively affected by adverse changes in the financial condition of clients, counterparties, CCPs and other market participants.
+False | L2 | 1A_030 | JPM_2026_item1a_030 | 1 | JPMorganChase could suffer losses if the value of collateral declines.
+False | L2 | 1A_031 | JPM_2026_item1a_031 | 0 | JPMorganChase could incur significant losses arising from concentrations of credit and market risk.
+False | L2 | 1A_032 | JPM_2026_item1a_032 | 1 | JPMorganChase’s ability to operate its businesses could be impaired if its liquidity is constrained.
+False | L2 | 1A_033 | JPM_2026_item1a_033 | 3 | JPMorgan Chase & Co. is a holding company and depends on its subsidiaries for funding to make payments on its outstanding securities.
+False | L2 | 1A_034 | JPM_2026_item1a_034 | 1 | JPMorganChase’s liquidity and cost of funding could be adversely affected by downgrades in its credit ratings.
+False | L2 | 1A_035 | JPM_2026_item1a_035 | 1 | JPMorganChase’s ability to distribute capital to shareholders, and to support its business activities could be limited if it does not satisfy applicable regulatory capital requirements.
+False | L2 | 1A_036 | JPM_2026_item1a_036 | 1 | JPMorganChase’s businesses could be adversely affected by the failure or disruption of operational systems on which they depend.
+False | L2 | 1A_037 | JPM_2026_item1a_037 | 1 | JPMorganChase’s interconnectedness with clients, customers and other external parties could be a source of significant operational risk.
+False | L2 | 1A_038 | JPM_2026_item1a_038 | 2 | A successful cyber attack could cause significant harm to JPMorganChase and its clients and customers.
+False | L2 | 1A_039 | JPM_2026_item1a_039 | 1 | JPMorganChase’s businesses could be adversely affected if it fails to identify and address operational risks associated with the introduction of or changes to products, services, delivery platforms or technologies.
+False | L2 | 1A_040 | JPM_2026_item1a_040 | 1 | JPMorganChase’s business and operations rely on appropriate staffing and on the competence, trustworthiness, health and safety of employees.
+False | L2 | 1A_041 | JPM_2026_item1a_041 | 1 | JPMorganChase faces substantial legal and operational risks related to the processing and safeguarding of personal information.
+False | L2 | 1A_042 | JPM_2026_item1a_042 | 1 | JPMorganChase’s operations, results and reputation could be harmed by occurrences of extraordinary events beyond its control.
+False | L2 | 1A_043 | JPM_2026_item1a_043 | 1 | Any failure to maintain adequate data management processes could adversely affect JPMorganChase’s ability to effectively manage its businesses, comply with applicable law or make informed business decisions.
+False | L2 | 1A_044 | JPM_2026_item1a_044 | 1 | Enhanced regulatory and other standards for the oversight of JPMorganChase’s vendors and other service providers could result in higher costs and other potential exposures.
+False | L2 | 1A_045 | JPM_2026_item1a_045 | 9 | JPMorganChase could incur losses arising from any significant inadequacy or lapse in its risk management framework and control environment.
+False | L2 | 1A_046 | JPM_2026_item1a_046 | 2 | JPMorganChase could recognize unexpected losses, its capital levels could be reduced and it could face greater regulatory scrutiny if its models, estimations or judgments, including those used in its financial statements, are inadequate or incorrect.
+False | L2 | 1A_047 | JPM_2026_item1a_047 | 1 | A significant inadequacy in disclosure or financial reporting controls could negatively affect JPMorganChase’s business, operations and reputation.
+False | L2 | 1A_048 | JPM_2026_item1a_048 | 1 | JPMorganChase’s results or competitive standing could suffer if its management fails to develop and execute effective business strategies and to anticipate changes affecting those strategies.
+False | L2 | 1A_049 | JPM_2026_item1a_049 | 1 | Competition in the financial services industry could lead to negative effects on JPMorganChase’s results of operations.
+False | L2 | 1A_050 | JPM_2026_item1a_050 | 5 | JPMorganChase’s operations, results, and competitive standing could be adversely affected by the development of advanced technologies such as AI.
+False | L2 | 1A_051 | JPM_2026_item1a_051 | 2 | The effects of climate change could adversely affect JPMorganChase’s business and operations, both directly and as a result of impacts on its clients and customers.
+False | L2 | 1A_052 | JPM_2026_item1a_052 | 1 | Conduct failure by JPMorganChase employees could trigger litigation and regulatory actions and harm JPMorganChase’s reputation.
+False | L2 | 1A_053 | JPM_2026_item1a_053 | 4 | Damage to JPMorganChase’s reputation could negatively affect its business, results and prospects.
+False | L2 | 1A_054 | JPM_2026_item1a_054 | 3 | Failure to effectively manage potential conflicts of interest or to satisfy fiduciary obligations could result in litigation and enforcement actions and cause reputational harm.
+False | L2 | 1A_055 | JPM_2026_item1a_055 | 2 | An outbreak or escalation of hostilities between countries or within a country or region could have a material adverse effect on the global economy and on JPMorganChase’s businesses within the affected region or globally.
+False | L2 | 1A_056 | JPM_2026_item1a_056 | 0 | JPMorganChase’s business and operations in certain countries could be adversely affected by local economic, political, regulatory and social factors.
+False | L2 | 1A_057 | JPM_2026_item1a_057 | 4 | Various factors could impact JPMorganChase’s workforce.
