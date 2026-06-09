@@ -1,0 +1,10 @@
+# LaTeX build artifacts (keep sources + main.pdf, drop the rest)
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.toc
+*.lof
+*.lot
+*.synctex.gz
