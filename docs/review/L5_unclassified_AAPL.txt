@@ -1,0 +1,8 @@
+R-AAPL-016 | AAPL | 1A_009 | title: Riesgo de suministro
+    QUOTE: Because the Company currently obtains certain components from single or limited sources, the Company is subject to significant supply and pricing risks.
+R-AAPL-017 | AAPL | 1A_009 | title: Riesgo de escasez de componentes
+    QUOTE: The global semiconductor industry has in the past experienced high demand and shortages of supply, which adversely affected the Company’s ability to obtain sufficient quantities of components and products on commercially reasonable terms, or at all.
+R-AAPL-020 | AAPL | 1A_009 | title: Riesgo de renovación de contratos
+    QUOTE: The Company may not be able to extend or renew agreements for the supply of components on similar terms, or at all,
+R-AAPL-024 | AAPL | 1A_010 | title: Reclamaciones de responsabilidad por productos
+    QUOTE: The Company may not be able to detect and fix all issues and defects in the hardware, software and services it offers, which can result in widespread technical and performance issues affecting the Company’s products and services.

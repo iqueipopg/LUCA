@@ -1,0 +1,37 @@
+R-AAPL-006 | AAPL | operational | Los desastres naturales pueden interrumpir las operaciones de la compañía y sus proveedores, lo que puede aumentar los costos y afectar el rendimiento de las operaciones.
+R-AAPL-007 | AAPL | operational | Las enfermedades públicas pueden afectar significativamente el negocio de la compañía y sus operaciones.
+R-AAPL-012 | AAPL | operational | El éxito en la introducción y transición de nuevos productos y servicios puede verse afectado por diversos factores como la competencia, la aceptación del mercado, la disponibilidad de recursos y la gestión de riesgos asociados.
+R-AAPL-014 | AAPL | operational | La empresa corre el riesgo de no poder ejecutar sus iniciativas estratégicas debido a la falta de personal altamente calificado.
+R-AAPL-019 | AAPL | operational | La capacidad limitada de producción puede afectar la obtención de componentes necesarios para nuevos productos. Esto se debe a restricciones iniciales en la capacidad de fabricación y el tiempo necesario para que los proveedores alcancen una mayor eficiencia.
+R-AAPL-021 | AAPL | operational | Los defectos en los productos y servicios pueden afectar negativamente el negocio de la empresa y dañar su reputación.
+R-AAPL-022 | AAPL | operational | Los problemas de calidad en los servicios pueden causar interrupciones y errores, lo que puede no cumplir con las expectativas del cliente.
+R-AAPL-029 | AAPL | operational | La competencia intensa en el sector tecnológico puede aumentar los costos de contratación y retención de empleados altamente calificados.
+R-AAPL-030 | AAPL | operational | El Company debe navegar eficazmente los cambios en las dinámicas del trabajo para cumplir con sus iniciativas estratégicas.
+R-AAPL-032 | AAPL | operational | La incapacidad de mantener la cultura empresarial distintiva y inclusiva podría afectar negativamente la contratación y retención del personal altamente calificado.
+R-AAPL-033 | AAPL | operational | La empresa depende del rendimiento de los proveedores y otros vendedores, lo que puede afectar sus ventas si estos cambian o eliminan planes de financiamiento.
+R-AAPL-037 | AAPL | operational | La inversión en programas para mejorar las ventas a través de los vendedores puede no garantizar un retorno o incremento en las ventas.
+R-AAPL-042 | AAPL | operational | Investment in new business strategies could disrupt ongoing operations and negatively impact the company's business, reputation, financial performance and stock price.
+R-AAPL-046 | AAPL | operational | New business strategies and ventures may not be successful, potentially harming the company's financial condition.
+R-AAPL-052 | AAPL | operational | Los cambios en las prácticas de negocio para cumplir con nuevas leyes y regulaciones o en respuesta a litigios pueden afectar negativamente la reputación de los productos de la compañía.
+R-JPM-008 | JPM | operational | Peligros relacionados con la dependencia de los sistemas operativos y empleados de JPMorganChase, incluyendo aquellos de las empresas adquiridas y terceros.
+R-JPM-010 | JPM | operational | Peligros relacionados con el manejo y protección de los datos personales en JPMorganChase.
+R-JPM-014 | JPM | operational | Riesgo de conducta que podría causar un impacto negativo debido a la mala conducta de los empleados de JPMorganChase.
+R-JPM-018 | JPM | operational | JPMorganChase podría necesitar modificar sus operaciones para cumplir con regulaciones más estrictas y enfrentar competencia de empresas menos reguladas.
+R-JPM-019 | JPM | operational | JPMorganChase podría enfrentar costos operativos y de cumplimiento más altos debido a la modificación de sus operaciones para cumplir con regulaciones más estrictas.
+R-JPM-022 | JPM | operational | JPMorganChase podría necesitar implementar cambios operativos y estructurales significativos en los lugares donde se implementen iniciativas regulatorias, lo que podría aumentar sus costos.
+R-JPM-047 | JPM | operational | Las estrategias de mitigación del riesgo utilizadas por JPMorganChase podrían no ser efectivas en eventos de mercado extremos, lo que podría resultar en pérdidas significativas.
+R-JPM-053 | JPM | operational | Si un cliente realiza actividades fraudulentas relacionadas con la contabilidad, informes o representación del colateral, JPMorganChase podría sufrir pérdidas.
+R-JPM-062 | JPM | operational | La interconexión de JPMorganChase con clientes, consumidores y otras partes externas puede ser una fuente significativa de riesgo operacional.
+R-JPM-065 | JPM | operational | La empresa podría verse afectada si no identifica y aborda los riesgos operativos asociados con la introducción de nuevos productos o servicios, adquisiciones, tecnologías u otros cambios.
+R-JPM-066 | JPM | operational | Falta de personal adecuado puede afectar negativamente las operaciones y la eficiencia de JPMorganChase.
+R-JPM-069 | JPM | operational | La incapacidad para mantener procesos de gestión de datos adecuados puede afectar negativamente la capacidad de JPMorganChase para gestionar eficazmente sus negocios, cumplir con la ley o tomar decisiones comerciales informadas.
+R-JPM-073 | JPM | operational | Los problemas de riesgo importantes podrían no ser escalados a tiempo al alto nivel de gestión y al directorio, lo que podría tener consecuencias negativas para JPMorganChase.
+R-JPM-074 | JPM | operational | Se podrían tomar decisiones de negocio con resultados negativos debido a la deficiencia en el marco de gestión del riesgo.
+R-JPM-076 | JPM | operational | Se requerirían recursos y tiempo significativos para remediar las deficiencias en el marco de gestión del riesgo.
+R-JPM-083 | JPM | operational | JPMorganChase podría sufrir si sus gerentes no desarrollan y ejecutan estrategias empresariales efectivas o no anticipan cambios en estas estrategias.
+R-JPM-089 | JPM | operational | Agentes de IA podrían gestionar decisiones financieras y servicios para los clientes, lo que podría disminuir las relaciones directas con JPMorganChase.
+R-JPM-092 | JPM | operational | El comportamiento inadecuado de los empleados puede llevar a acciones legales y regulatorias, dañar la reputación de JPMorganChase e incrementar los costos operativos.
+R-JPM-097 | JPM | operational | No se manejan adecuadamente los conflictos de interés o no se cumplen con las obligaciones fiduciarias, lo que podría resultar en acciones judiciales y medidas regulatorias, dañando la reputación.
+R-JPM-098 | JPM | operational | No se identifican o gestionan adecuadamente los conflictos de interés, lo que podría llevar a acciones judiciales y dañar la reputación.
+R-JPM-102 | JPM | operational | La capacidad de JPMorganChase para contratar y retener empleados talentosos podría verse afectada por diversos factores.
+R-JPM-103 | JPM | operational | El desempeño y la posición competitiva de JPMorganChase podrían verse afectados si no puede atraer o retener empleados calificados o planificar adecuadamente la sucesión para roles clave de liderazgo.

@@ -1,0 +1,105 @@
+R-JPM-001 | JPM | 1A_002 | regulatory | score:N/A | Riesgos legales y regulatorios
+R-JPM-002 | JPM | 1A_003 | geopolitical | score:N/A | Riesgos políticos
+R-JPM-003 | JPM | 1A_004 | market | score:N/A | Riesgos económicos y de mercado
+R-JPM-004 | JPM | 1A_005 | null | score:N/A | Riesgo crediticio
+R-JPM-005 | JPM | 1A_006 | null | score:N/A | Riesgo de liquidez
+R-JPM-006 | JPM | 1A_007 | null | score:N/A | Riesgo de capital
+R-JPM-007 | JPM | 1A_008 | technological | score:N/A | Riesgos operacionales
+R-JPM-008 | JPM | 1A_008 | operational | score:N/A | Riesgos de sistemas y empleados
+R-JPM-009 | JPM | 1A_008 | technological | score:N/A | Riesgos cibernéticos
+R-JPM-010 | JPM | 1A_008 | operational | score:N/A | Riesgos de gestión de datos
+R-JPM-011 | JPM | 1A_008 | regulatory | score:N/A | Riesgos de cumplimiento con estándares de supervisión de proveedores
+R-JPM-012 | JPM | 1A_008 | regulatory | score:N/A | Riesgos del marco de gestión de riesgos
+R-JPM-013 | JPM | 1A_009 | market | score:N/A | Riesgos estratégicos
+R-JPM-014 | JPM | 1A_010 | operational | score:N/A | Conduct
+R-JPM-015 | JPM | 1A_011 | null | score:N/A | Reputación
+R-JPM-016 | JPM | 1A_012 | geopolitical | score:N/A | Riesgos por país
+R-JPM-017 | JPM | 1A_015 | regulatory | score:N/A | Regulación y supervisión
+R-JPM-018 | JPM | 1A_016 | operational | score:N/A | Modificación de operaciones
+R-JPM-019 | JPM | 1A_016 | operational | score:N/A | Costos operativos y de cumplimiento
+R-JPM-020 | JPM | 1A_016 | market | score:N/A | Competencia desigual
+R-JPM-021 | JPM | 1A_016 | regulatory | score:N/A | Conflictos legales
+R-JPM-022 | JPM | 1A_016 | operational | score:N/A | Requisitos operativos y estructurales
+R-JPM-023 | JPM | 1A_017 | regulatory | score:N/A | Riesgos legales
+R-JPM-024 | JPM | 1A_018 | regulatory | score:N/A | Penalizaciones significativas
+R-JPM-025 | JPM | 1A_019 | regulatory | score:N/A | Riesgo de cumplimiento y costos operativos
+R-JPM-026 | JPM | 1A_020 | geopolitical | score:N/A | Políticas gubernamentales
+R-JPM-027 | JPM | 1A_021 | regulatory | score:N/A | Cambio en los requisitos de evaluación regulatoria del plan de resolución
+R-JPM-028 | JPM | 1A_022 | financial | score:N/A | Perdidas para los tenedores de bonos y acciones
+R-JPM-029 | JPM | 1A_023 | geopolitical | score:N/A | Desarrollo político y geopolítico
+R-JPM-030 | JPM | 1A_023 | technological | score:N/A | Políticas monetarias
+R-JPM-031 | JPM | 1A_024 | market | score:N/A | Economía y mercados adversos
+R-JPM-032 | JPM | 1A_024 | market | score:N/A | Cambios económicos
+R-JPM-033 | JPM | 1A_025 | market | score:N/A | Condiciones económicas adversas
+R-JPM-034 | JPM | 1A_025 | financial | score:N/A | Incremento en la morosidad
+R-JPM-035 | JPM | 1A_025 | market | score:N/A | Reducción en la demanda de productos y servicios
+R-JPM-036 | JPM | 1A_025 | geopolitical | score:N/A | Impacto de las políticas gubernamentales
+R-JPM-037 | JPM | 1A_026 | market | score:N/A | Condiciones de mercado y económicas desfavorables
+R-JPM-038 | JPM | 1A_026 | market | score:N/A | Disminución de los ingresos por comisiones
+R-JPM-039 | JPM | 1A_026 | financial | score:N/A | Salidas masivas de fondos
+R-JPM-040 | JPM | 1A_026 | financial | score:N/A | Perjuicios crediticios
+R-JPM-041 | JPM | 1A_026 | financial | score:N/A | Impacto en el rendimiento de los préstamos comerciales
+R-JPM-042 | JPM | 1A_027 | financial | score:N/A | Cambios en tasas de interés
+R-JPM-043 | JPM | 1A_027 | financial | score:N/A | Aumento de las tasas de interés
+R-JPM-044 | JPM | 1A_028 | market | score:N/A | Fluctuaciones del mercado
+R-JPM-045 | JPM | 1A_028 | market | score:N/A | Valuación de instrumentos financieros
+R-JPM-046 | JPM | 1A_028 | market | score:N/A | Disposición de instrumentos financieros
+R-JPM-047 | JPM | 1A_028 | operational | score:N/A | Estrategias de gestión del riesgo
+R-JPM-048 | JPM | 1A_029 | null | score:N/A | default de clientes y contrapartes
+R-JPM-049 | JPM | 1A_029 | regulatory | score:N/A | insolvencia de entidades custodiales
+R-JPM-050 | JPM | 1A_029 | regulatory | score:N/A | default de CCPs
+R-JPM-051 | JPM | 1A_029 | regulatory | score:N/A | default de miembros de CCPs
+R-JPM-052 | JPM | 1A_029 | regulatory | score:N/A | perdidas de custodia
+R-JPM-053 | JPM | 1A_029 | operational | score:N/A | actividad fraudulenta de clientes
+R-JPM-054 | JPM | 1A_030 | market | score:N/A | Bajada en el valor del colateral
+R-JPM-055 | JPM | 1A_032 | financial | score:N/A | Constricción de liquidez
+R-JPM-056 | JPM | 1A_033 | regulatory | score:N/A | Dependencia de la matriz sobre sus subsidiarias para el pago de obligaciones financieras
+R-JPM-057 | JPM | 1A_033 | regulatory | score:N/A | Limitaciones en el pago de dividendos
+R-JPM-058 | JPM | 1A_033 | regulatory | score:N/A | Bancarrota y procedimientos de resolución
+R-JPM-059 | JPM | 1A_034 | null | score:N/A | Downgrade en calificaciones de crédito
+R-JPM-060 | JPM | 1A_035 | regulatory | score:N/A | Limitación de distribución de capital
+R-JPM-061 | JPM | 1A_036 | technological | score:N/A | Fallas o interrupciones en los sistemas operativos
+R-JPM-062 | JPM | 1A_037 | operational | score:N/A | Riesgo operacional
+R-JPM-063 | JPM | 1A_038 | technological | score:N/A | Ataque cibernético exitoso
+R-JPM-064 | JPM | 1A_038 | technological | score:N/A | Brechas de seguridad
+R-JPM-065 | JPM | 1A_039 | operational | score:N/A | Riesgo operacional
+R-JPM-066 | JPM | 1A_040 | operational | score:N/A | Staffing shortages
+R-JPM-067 | JPM | 1A_041 | regulatory | score:N/A | Riesgos legales y operativos relacionados con la protección de información personal
+R-JPM-068 | JPM | 1A_042 | technological | score:N/A | Ataques cibernéticos
+R-JPM-069 | JPM | 1A_043 | operational | score:N/A | Fallos en los procesos de gestión de datos
+R-JPM-070 | JPM | 1A_044 | financial | score:N/A | Costos más altos
+R-JPM-071 | JPM | 1A_045 | regulatory | score:N/A | Inadequacy in risk management framework
+R-JPM-072 | JPM | 1A_045 | regulatory | score:N/A | Inaccurate identification of risks
+R-JPM-073 | JPM | 1A_045 | operational | score:N/A | Delayed escalation of risk issues
+R-JPM-074 | JPM | 1A_045 | operational | score:N/A | Negative business decisions
+R-JPM-075 | JPM | 1A_045 | regulatory | score:N/A | Harm to customers or clients
+R-JPM-076 | JPM | 1A_045 | operational | score:N/A | Significant resource allocation
+R-JPM-077 | JPM | 1A_045 | regulatory | score:N/A | Non-compliance with laws
+R-JPM-078 | JPM | 1A_045 | regulatory | score:N/A | Litigation and investigations
+R-JPM-079 | JPM | 1A_045 | null | score:N/A | Reputational harm
+R-JPM-080 | JPM | 1A_046 | financial | score:N/A | Modelos y estimaciones inadecuados o incorrectos
+R-JPM-081 | JPM | 1A_046 | technological | score:N/A | Limitaciones en la precisión de los modelos
+R-JPM-082 | JPM | 1A_047 | financial | score:N/A | Inadequacy in disclosure or financial reporting controls
+R-JPM-083 | JPM | 1A_048 | operational | score:N/A | Desarrollo e implementación de estrategias empresariales
+R-JPM-084 | JPM | 1A_049 | market | score:N/A | Competencia en el sector financiero
+R-JPM-085 | JPM | 1A_050 | technological | score:N/A | Fallos de sistemas de IA
+R-JPM-086 | JPM | 1A_050 | technological | score:N/A | Exposición a ataques cibernéticos
+R-JPM-087 | JPM | 1A_050 | regulatory | score:N/A | Riesgos regulatorios y de cumplimiento
+R-JPM-088 | JPM | 1A_050 | market | score:N/A | Desventaja competitiva
+R-JPM-089 | JPM | 1A_050 | operational | score:N/A | Reemplazo o desintermediación de relaciones con clientes
+R-JPM-090 | JPM | 1A_051 | geopolitical | score:N/A | Riesgos físicos del cambio climático
+R-JPM-091 | JPM | 1A_051 | regulatory | score:N/A | Riesgos de transición del cambio climático
+R-JPM-092 | JPM | 1A_052 | operational | score:N/A | Conduct failure
+R-JPM-093 | JPM | 1A_053 | null | score:N/A | Daño a la reputación
+R-JPM-094 | JPM | 1A_053 | null | score:N/A | Percepción incorrecta
+R-JPM-095 | JPM | 1A_053 | regulatory | score:N/A | Investigaciones gubernamentales
+R-JPM-096 | JPM | 1A_053 | null | score:N/A | Perdida de clientes y empleados
+R-JPM-097 | JPM | 1A_054 | operational | score:N/A | Conflictos de interés
+R-JPM-098 | JPM | 1A_054 | operational | score:N/A | Identificación y gestión de conflictos
+R-JPM-099 | JPM | 1A_054 | regulatory | score:N/A | Cumplimiento con obligaciones fiduciarias
+R-JPM-100 | JPM | 1A_055 | geopolitical | score:N/A | Conflict
+R-JPM-101 | JPM | 1A_055 | technological | score:N/A | Cyber attacks
+R-JPM-102 | JPM | 1A_057 | operational | score:N/A | Recruitment
+R-JPM-103 | JPM | 1A_057 | operational | score:N/A | Succession Planning
+R-JPM-104 | JPM | 1A_057 | geopolitical | score:N/A | Immigration Policies
+R-JPM-105 | JPM | 1A_057 | technological | score:N/A | Workforce Displacement

@@ -1,0 +1,68 @@
+R-AAPL-001 | AAPL | 1A_003 | market | score:N/A | Condiciones económicas adversas
+R-AAPL-002 | AAPL | 1A_003 | financial | score:N/A | Desestabilización financiera
+R-AAPL-003 | AAPL | 1A_003 | financial | score:N/A | Riesgo de crédito
+R-AAPL-004 | AAPL | 1A_004 | geopolitical | score:N/A | Conflict
+R-AAPL-005 | AAPL | 1A_004 | geopolitical | score:N/A | Trade restrictions
+R-AAPL-006 | AAPL | 1A_004 | operational | score:N/A | Natural disasters
+R-AAPL-007 | AAPL | 1A_004 | operational | score:N/A | Public health issues
+R-AAPL-008 | AAPL | 1A_005 | market | score:N/A | Competencia en mercados globales
+R-AAPL-009 | AAPL | 1A_005 | technological | score:N/A | Presión por el cambio tecnológico
+R-AAPL-010 | AAPL | 1A_005 | technological | score:N/A | Infracción de derechos de propiedad intelectual
+R-AAPL-011 | AAPL | 1A_005 | market | score:N/A | Competencia intensificada
+R-AAPL-012 | AAPL | 1A_007 | operational | score:N/A | Introducción y transición de productos y servicios
+R-AAPL-013 | AAPL | 1A_007 | market | score:N/A | Competencia y demanda del cliente
+R-AAPL-014 | AAPL | 1A_007 | operational | score:N/A | Recruitment and retention of skilled personnel
+R-AAPL-015 | AAPL | 1A_008 | technological | score:N/A | Dependencia de terceros
+R-AAPL-016 | AAPL | 1A_009 | null | score:N/A | Riesgo de suministro
+R-AAPL-017 | AAPL | 1A_009 | null | score:N/A | Riesgo de escasez de componentes
+R-AAPL-018 | AAPL | 1A_009 | financial | score:N/A | Riesgo de precios
+R-AAPL-019 | AAPL | 1A_009 | operational | score:N/A | Riesgo de capacidad de producción
+R-AAPL-020 | AAPL | 1A_009 | null | score:N/A | Riesgo de renovación de contratos
+R-AAPL-021 | AAPL | 1A_010 | operational | score:N/A | Defects en productos y servicios
+R-AAPL-022 | AAPL | 1A_010 | operational | score:N/A | Problemas de calidad en servicios
+R-AAPL-023 | AAPL | 1A_010 | technological | score:N/A | Riesgos de seguridad y privacidad
+R-AAPL-024 | AAPL | 1A_010 | null | score:N/A | Reclamaciones de responsabilidad por productos
+R-AAPL-025 | AAPL | 1A_011 | financial | score:N/A | Riesgo de write-downs en inventarios y otros activos
+R-AAPL-026 | AAPL | 1A_012 | technological | score:N/A | Acceso a propiedad intelectual de terceros
+R-AAPL-027 | AAPL | 1A_013 | technological | score:N/A | Dependencia de terceros en el desarrollo y mantenimiento de software
+R-AAPL-028 | AAPL | 1A_014 | market | score:N/A | Contenido digital no atractivo
+R-AAPL-029 | AAPL | 1A_015 | operational | score:N/A | Competencia por talento
+R-AAPL-030 | AAPL | 1A_015 | operational | score:N/A | Cambio en las dinámicas del trabajo
+R-AAPL-031 | AAPL | 1A_015 | regulatory | score:N/A | Regulaciones laborales y de inmigración
+R-AAPL-032 | AAPL | 1A_015 | operational | score:N/A | Cultura empresarial
+R-AAPL-033 | AAPL | 1A_016 | operational | score:N/A | Dependencia de los proveedores
+R-AAPL-034 | AAPL | 1A_016 | market | score:N/A | Cambios en las preferencias y comportamientos de los consumidores
+R-AAPL-035 | AAPL | 1A_016 | financial | score:N/A | Condición financiera debilitada de los vendedores
+R-AAPL-036 | AAPL | 1A_016 | financial | score:N/A | Reducción en el orden y marketing por parte de los vendedores
+R-AAPL-037 | AAPL | 1A_016 | operational | score:N/A | Inversión en programas sin asegurar retorno
+R-AAPL-038 | AAPL | 1A_017 | technological | score:N/A | Fallos de sistemas de tecnología de la información
+R-AAPL-039 | AAPL | 1A_018 | technological | score:N/A | Perdida de información confidencial
+R-AAPL-040 | AAPL | 1A_018 | technological | score:N/A | Ataques cibernéticos
+R-AAPL-041 | AAPL | 1A_018 | technological | score:N/A | Riesgo de seguridad
+R-AAPL-042 | AAPL | 1A_019 | operational | score:N/A | Inversion en nuevas estrategias de negocios
+R-AAPL-043 | AAPL | 1A_019 | market | score:N/A | Relaciones comerciales y adquisiciones
+R-AAPL-044 | AAPL | 1A_019 | regulatory | score:N/A | Aprobación regulatoria
+R-AAPL-045 | AAPL | 1A_019 | financial | score:N/A | Desempeño del socio o parte contraria
+R-AAPL-046 | AAPL | 1A_019 | operational | score:N/A | Éxito de las estrategias y inversiones
+R-AAPL-047 | AAPL | 1A_022 | regulatory | score:N/A | Regulaciones cambiantes
+R-AAPL-048 | AAPL | 1A_022 | geopolitical | score:N/A | Exportaciones e importaciones
+R-AAPL-049 | AAPL | 1A_023 | market | score:N/A | Expectativas de los stakeholders
+R-AAPL-050 | AAPL | 1A_024 | regulatory | score:N/A | Regulación
+R-AAPL-051 | AAPL | 1A_024 | regulatory | score:N/A | Investigaciones y acciones legales
+R-AAPL-052 | AAPL | 1A_024 | operational | score:N/A | Cambios en las prácticas de negocio
+R-AAPL-053 | AAPL | 1A_025 | regulatory | score:N/A | Regulaciones de privacidad y protección de datos
+R-AAPL-054 | AAPL | 1A_025 | regulatory | score:N/A | Incumplimiento de declaraciones públicas sobre privacidad
+R-AAPL-055 | AAPL | 1A_025 | regulatory | score:N/A | Disclosures inadvertidas de datos personales
+R-AAPL-056 | AAPL | 1A_025 | regulatory | score:N/A | Regulaciones específicas para datos de menores
+R-AAPL-057 | AAPL | 1A_025 | regulatory | score:N/A | Regulaciones de seguridad en línea
+R-AAPL-058 | AAPL | 1A_027 | market | score:N/A | Presiones de precios globales
+R-AAPL-059 | AAPL | 1A_028 | financial | score:N/A | Fluctuaciones en las tasas de cambio
+R-AAPL-060 | AAPL | 1A_028 | financial | score:N/A | Efectos negativos en los márgenes brutos
+R-AAPL-061 | AAPL | 1A_028 | financial | score:N/A | Efectos limitados de las herramientas de hedge
+R-AAPL-062 | AAPL | 1A_029 | financial | score:N/A | Riesgo crediticio
+R-AAPL-063 | AAPL | 1A_029 | financial | score:N/A | Fluctuaciones en el valor de la cartera de inversiones
+R-AAPL-064 | AAPL | 1A_030 | financial | score:N/A | Riesgo de crédito
+R-AAPL-065 | AAPL | 1A_031 | regulatory | score:N/A | Cambios en tasas impositivas
+R-AAPL-066 | AAPL | 1A_031 | regulatory | score:N/A | Adopción de nuevas leyes fiscales
+R-AAPL-067 | AAPL | 1A_031 | regulatory | score:N/A | Exposición a responsabilidades fiscales adicionales
+R-AAPL-068 | AAPL | 1A_033 | market | score:N/A | Volatilidad del precio de la acción
