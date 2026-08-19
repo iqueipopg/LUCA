@@ -22,6 +22,10 @@
 \providecommand{\IEEEkeywordsname}{Términos índice}
 \renewcommand{\IEEEkeywordsname}{Términos índice}
 
+% Macros del corpus (auto-generadas desde experiments/corpus_manifest.csv
+% por experiments/make_corpus_tables.py; no editar a mano).
+\input{corpus_macros.tex}
+
 \begin{document}
 
 \title{LUCA: un pipeline multiagente híbrido XBRL--LLM para la\\
@@ -42,7 +46,7 @@ Madrid, España\\
 \maketitle
 
 \begin{abstract}
-LUCA es un pipeline multiagente que ingiere un documento financiero regulatorio
+LUCA (\textit{LLM-based Unified Corporate Analyst}) es un pipeline multiagente que ingiere un documento financiero regulatorio
 (un informe 10-K de SEC EDGAR) y produce un \textit{investment memo}
 estructurado. Su decisión de diseño central es la extracción \emph{híbrida}: las
 cifras numéricas se obtienen de los datos XBRL del propio documento (sin LLM,
@@ -450,6 +454,22 @@ relativa del 0.5\%, y trata como coincidencia el caso en que tanto el valor
 anotado como el predicho son nulos (por ejemplo, el beneficio operativo de
 ciertos bancos, que no publican ese subtotal).
 
+% TODO(human): párrafo de corpus (T5.2). Validar redacción y cifras contra
+% experiments/coverage_report.md antes de cerrar el paper.
+\subsection{Corpus de cobertura}
+Además de la evaluación de accuracy sobre el gold standard, la ruta de
+extracción estructurada se ejecutó sobre un corpus completo:
+\corpusFilings{} \textit{filings} 10-K de \corpusCompanies{} empresas
+cotizadas en EE.UU. (tres ejercicios fiscales por empresa, FY2022 a
+FY2024), produciendo un manifiesto de extracción por \textit{filing}. La
+cobertura de campos sobre el corpus fue del \corpusCoverage\%; los
+valores ausentes están documentados y corresponden a métricas que el
+emisor no etiqueta en XBRL (por ejemplo, bancos que no publican la línea
+de beneficio operativo). Las afirmaciones de accuracy siguen limitadas al
+gold standard de $N=60$ puntos anotados a mano; el corpus caracteriza
+cobertura, no accuracy (Tablas~\ref{tab:corpus-metric}
+y~\ref{tab:corpus-sector} del apéndice).
+
 \subsection{Enfoques comparados}
 Comparamos tres enfoques que comparten el mismo modelo y el mismo comparador
 numérico:
@@ -717,6 +737,12 @@ implicación. Más allá de ellas, conviene subrayar que la evaluación cuantita
 cubre la capa numérica (L3) y no todavía la calidad de la capa cualitativa, que
 se ha validado de forma manual y se documenta como pendiente de evaluación
 sistemática.
+% TODO(human): frase añadida en T5.2 a partir del corpus (hueco sistemático).
+El corpus S\&P~100 revela además un hueco sistemático: el subtotal de beneficio
+operativo no se etiqueta en XBRL ni en las financieras (por convención de
+presentación) ni en buena parte de farmacéuticas y energéticas, lo que limita la
+cobertura de \texttt{operating\_income} en el corpus
+(Tabla~\ref{tab:corpus-metric}).
 
 \begin{table}[t]
 \centering
@@ -822,6 +848,19 @@ se reconocen con honestidad los límites de su parte cualitativa. Esa combinaci�
 precisión verificable donde el dato lo permite y transparencia sobre las
 limitaciones donde no, es un camino practicable para desplegar análisis financiero
 asistido por IA sin depender de modelos cerrados de gran escala.
+
+% TODO(human): apéndice de cobertura del corpus (T5.2); tablas
+% auto-generadas desde experiments/corpus_manifest.csv por
+% experiments/make_corpus_tables.py. Revisar ubicación/estilo.
+\appendix
+\section{Cobertura del corpus S\&P 100}
+\label{sec:appendix-corpus}
+Las Tablas~\ref{tab:corpus-metric} y~\ref{tab:corpus-sector} desglosan la
+cobertura de campos del corpus (\corpusFilings{} \textit{filings} 10-K,
+\corpusCompanies{} empresas, FY2022--FY2024) por métrica \textit{core} y
+por sector (división SIC). Cobertura, no accuracy: la accuracy se mide
+únicamente contra el gold standard de $N=60$.
+\input{corpus_tables.tex}
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
