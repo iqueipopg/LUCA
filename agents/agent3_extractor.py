@@ -160,10 +160,27 @@ _TAG_CANDIDATES: Final[dict[str, tuple[str, ...]]] = {
         # Last-resort fallback for SIC 6022 commercial banks (e.g. JPM).
         # See justification block above.
         "InterestAndDividendIncomeOperating",
+        # Last-resort fallback for regulated utilities (SIC 4911/4931,
+        # e.g. DUK, NEE): the utility taxonomy reports total operating
+        # revenues under this element and often omits ``Revenues``
+        # entirely. Placed last: for non-utilities the tag is absent,
+        # and on end-date ties earlier tags win by priority, so no
+        # existing selection can change (T5.1 corpus triage, motivating
+        # ticker DUK; see experiments/chain_changelog.md).
+        "RegulatedAndUnregulatedOperatingRevenue",
     ),
     "net_income": (
         "NetIncomeLoss",
         "ProfitLoss",
+        # Last-resort fallback for issuers that only tag the
+        # available-to-common line (e.g. BKNG, which omits
+        # ``NetIncomeLoss`` in FY2022-FY2024 company facts). Equals net
+        # income when no preferred dividends exist; when they do, it
+        # under-states by the preferred dividend, which we accept for a
+        # last-resort tag. Placed last so it can only resolve when both
+        # standard tags are absent (T5.1 corpus triage, motivating
+        # ticker BKNG; see experiments/chain_changelog.md).
+        "NetIncomeLossAvailableToCommonStockholdersBasic",
     ),
     "operating_income": (
         "OperatingIncomeLoss",

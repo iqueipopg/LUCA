@@ -687,7 +687,7 @@ def cmd_report() -> int:
     if CHANGELOG_PATH.is_file():
         entries = [
             line for line in CHANGELOG_PATH.read_text(encoding="utf-8").splitlines()
-            if line.startswith("## ")
+            if line.startswith("## ") and "+=" in line
         ]
         if entries:
             chain_changes = f"{len(entries)} (ver `chain_changelog.md`)"

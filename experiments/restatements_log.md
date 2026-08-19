@@ -1,0 +1,146 @@
+# Corpus S&P 100 — restatements detectados (T5.1)
+
+Valores donde un filing posterior re-publica el mismo periodo con
+una cifra distinta a la originalmente reportada. El manifiesto
+conserva SIEMPRE el valor as-originally-reported; esta bitácora
+documenta la discrepancia. Comparación sobre el mismo tag US-GAAP
+y el mismo period_end; se registra cualquier diferencia relativa
+mayor que 1e-9.
+
+**Total: 133 discrepancias.**
+
+| Ticker | FY | Métrica | Tag | Original | Restated | Restated en FY | Accession posterior |
+|--------|----|---------|-----|----------|----------|----------------|---------------------|
+| AMT | 2022 | revenue | Revenues | 1.07111e+10 | 9.6454e+09 | 2024 | 0001053507-25-000025 |
+| AMT | 2022 | operating_income | OperatingIncomeLoss | 2.3523e+09 | 2.7386e+09 | 2024 | 0001053507-25-000025 |
+| AMT | 2023 | revenue | Revenues | 1.11442e+10 | 1.00122e+10 | 2024 | 0001053507-25-000025 |
+| AMT | 2023 | revenue | Revenues | 1.11442e+10 | 1.00122e+10 | 2025 | 0001053507-26-000035 |
+| AMT | 2023 | operating_income | OperatingIncomeLoss | 3.0249e+09 | 3.1255e+09 | 2024 | 0001053507-25-000025 |
+| AMT | 2023 | operating_income | OperatingIncomeLoss | 3.0249e+09 | 3.1255e+09 | 2025 | 0001053507-26-000035 |
+| AVGO | 2022 | eps_diluted | EarningsPerShareDiluted | 26.53 | 2.65 | 2024 | 0001730168-24-000139 |
+| AVGO | 2023 | eps_diluted | EarningsPerShareDiluted | 32.98 | 3.3 | 2024 | 0001730168-24-000139 |
+| AVGO | 2023 | eps_diluted | EarningsPerShareDiluted | 32.98 | 3.3 | 2025 | 0001730168-25-000121 |
+| BA | 2022 | operating_income | OperatingIncomeLoss | -3.547e+09 | -3.519e+09 | 2023 | 0000012927-24-000010 |
+| BA | 2022 | operating_income | OperatingIncomeLoss | -3.547e+09 | -3.519e+09 | 2024 | 0000012927-25-000015 |
+| BAC | 2023 | revenue | Revenues | 9.8581e+10 | 1.02769e+11 | 2025 | 0000070858-26-000157 |
+| BAC | 2023 | net_income | NetIncomeLoss | 2.6515e+10 | 2.6305e+10 | 2025 | 0000070858-26-000157 |
+| BAC | 2023 | total_equity | StockholdersEquity | 2.91646e+11 | 2.90209e+11 | 2025 | 0000070858-26-000157 |
+| BAC | 2023 | eps_diluted | EarningsPerShareDiluted | 3.08 | 3.05 | 2025 | 0000070858-26-000157 |
+| BAC | 2024 | revenue | Revenues | 1.01887e+11 | 1.05856e+11 | 2025 | 0000070858-26-000157 |
+| BAC | 2024 | net_income | NetIncomeLoss | 2.7132e+10 | 2.6973e+10 | 2025 | 0000070858-26-000157 |
+| BAC | 2024 | total_assets | Assets | 3.26152e+12 | 3.2613e+12 | 2025 | 0000070858-26-000157 |
+| BAC | 2024 | total_equity | StockholdersEquity | 2.95559e+11 | 2.93963e+11 | 2025 | 0000070858-26-000157 |
+| BAC | 2024 | eps_diluted | EarningsPerShareDiluted | 3.21 | 3.19 | 2025 | 0000070858-26-000157 |
+| BNY | 2022 | revenue | Revenues | 1.6377e+10 | 1.6529e+10 | 2024 | 0001390777-25-000046 |
+| BNY | 2022 | net_income | NetIncomeLoss | 2.573e+09 | 2.556e+09 | 2024 | 0001390777-25-000046 |
+| BNY | 2022 | total_assets | Assets | 4.05783e+11 | 4.0556e+11 | 2024 | 0001390777-25-000046 |
+| BNY | 2022 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 4.0741e+10 | 4.062e+10 | 2024 | 0001390777-25-000046 |
+| BNY | 2022 | eps_diluted | EarningsPerShareDiluted | 2.9 | 2.88 | 2024 | 0001390777-25-000046 |
+| BNY | 2023 | revenue | Revenues | 1.7502e+10 | 1.7697e+10 | 2024 | 0001390777-25-000046 |
+| BNY | 2023 | revenue | Revenues | 1.7502e+10 | 1.7697e+10 | 2025 | 0001390777-26-000033 |
+| BNY | 2023 | net_income | NetIncomeLoss | 3.286e+09 | 3.302e+09 | 2024 | 0001390777-25-000046 |
+| BNY | 2023 | net_income | NetIncomeLoss | 3.286e+09 | 3.302e+09 | 2025 | 0001390777-26-000033 |
+| BNY | 2023 | total_assets | Assets | 4.09953e+11 | 4.09877e+11 | 2024 | 0001390777-25-000046 |
+| BNY | 2023 | total_assets | Assets | 4.09953e+11 | 4.09877e+11 | 2025 | 0001390777-26-000033 |
+| BNY | 2023 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 4.0924e+10 | 4.082e+10 | 2024 | 0001390777-25-000046 |
+| BNY | 2023 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 4.0924e+10 | 4.082e+10 | 2025 | 0001390777-26-000033 |
+| BNY | 2023 | eps_diluted | EarningsPerShareDiluted | 3.87 | 3.89 | 2024 | 0001390777-25-000046 |
+| BNY | 2023 | eps_diluted | EarningsPerShareDiluted | 3.87 | 3.89 | 2025 | 0001390777-26-000033 |
+| BRK.B | 2022 | revenue | Revenues | 3.02089e+11 | 3.0202e+11 | 2023 | 0000950170-24-019719 |
+| BRK.B | 2022 | revenue | Revenues | 3.02089e+11 | 3.0202e+11 | 2024 | 0000950170-25-025210 |
+| BRK.B | 2022 | net_income | NetIncomeLoss | -2.2819e+10 | -2.2759e+10 | 2023 | 0000950170-24-019719 |
+| BRK.B | 2022 | net_income | NetIncomeLoss | -2.2819e+10 | -2.2759e+10 | 2024 | 0000950170-25-025210 |
+| BRK.B | 2022 | total_assets | Assets | 9.48452e+11 | 9.48465e+11 | 2023 | 0000950170-24-019719 |
+| BRK.B | 2022 | total_assets | Assets | 9.48452e+11 | 9.48465e+11 | 2024 | 0000950170-25-025210 |
+| BRK.B | 2022 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 4.80617e+11 | 4.81681e+11 | 2023 | 0000950170-24-019719 |
+| BRK.B | 2022 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 4.80617e+11 | 4.81681e+11 | 2024 | 0000950170-25-025210 |
+| BRK.B | 2022 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 4.80617e+11 | 4.81681e+11 | 2025 | 0001193125-26-083899 |
+| C | 2022 | total_assets | Assets | 2.41668e+12 | 2.417e+12 | 2024 | 0000831001-25-000067 |
+| C | 2023 | revenue | Revenues | 7.8462e+10 | 7.8066e+10 | 2025 | 0000831001-26-000011 |
+| C | 2023 | total_assets | Assets | 2.41183e+12 | 2.412e+12 | 2025 | 0000831001-26-000011 |
+| C | 2024 | revenue | Revenues | 8.1139e+10 | 8.0722e+10 | 2025 | 0000831001-26-000011 |
+| CVS | 2022 | net_income | NetIncomeLoss | 4.149e+09 | 4.311e+09 | 2023 | 0000064803-24-000007 |
+| CVS | 2022 | net_income | NetIncomeLoss | 4.149e+09 | 4.311e+09 | 2024 | 0000064803-25-000007 |
+| CVS | 2022 | operating_income | OperatingIncomeLoss | 7.746e+09 | 7.954e+09 | 2023 | 0000064803-24-000007 |
+| CVS | 2022 | operating_income | OperatingIncomeLoss | 7.746e+09 | 7.954e+09 | 2024 | 0000064803-25-000007 |
+| CVS | 2022 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 7.1315e+10 | 7.1769e+10 | 2023 | 0000064803-24-000007 |
+| CVS | 2022 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 7.1315e+10 | 7.1769e+10 | 2024 | 0000064803-25-000007 |
+| CVS | 2022 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 7.1315e+10 | 7.1769e+10 | 2025 | 0000064803-26-000010 |
+| CVS | 2022 | eps_diluted | EarningsPerShareDiluted | 3.14 | 3.26 | 2023 | 0000064803-24-000007 |
+| CVS | 2022 | eps_diluted | EarningsPerShareDiluted | 3.14 | 3.26 | 2024 | 0000064803-25-000007 |
+| DHR | 2022 | revenue | RevenueFromContractWithCustomerExcludingAssessedTax | 3.1471e+10 | 2.6643e+10 | 2023 | 0000313616-24-000052 |
+| DHR | 2022 | revenue | RevenueFromContractWithCustomerExcludingAssessedTax | 3.1471e+10 | 2.6643e+10 | 2024 | 0000313616-25-000043 |
+| DHR | 2022 | operating_income | OperatingIncomeLoss | 8.688e+09 | 7.536e+09 | 2023 | 0000313616-24-000052 |
+| DHR | 2022 | operating_income | OperatingIncomeLoss | 8.688e+09 | 7.536e+09 | 2024 | 0000313616-25-000043 |
+| EMR | 2022 | revenue | RevenueFromContractWithCustomerExcludingAssessedTax | 1.9629e+10 | 1.3804e+10 | 2023 | 0000032604-23-000044 |
+| EMR | 2022 | revenue | RevenueFromContractWithCustomerExcludingAssessedTax | 1.9629e+10 | 1.3804e+10 | 2024 | 0000032604-24-000041 |
+| GE | 2022 | revenue | Revenues | 7.6555e+10 | 5.81e+10 | 2023 | 0000040545-24-000027 |
+| GE | 2022 | revenue | Revenues | 7.6555e+10 | 2.9139e+10 | 2024 | 0000040545-25-000015 |
+| GE | 2022 | net_income | NetIncomeLoss | 2.25e+08 | 3.39e+08 | 2023 | 0000040545-24-000027 |
+| GE | 2022 | net_income | NetIncomeLoss | 2.25e+08 | 3.36e+08 | 2024 | 0000040545-25-000015 |
+| GE | 2022 | total_assets | Assets | 1.87788e+11 | 1.88851e+11 | 2023 | 0000040545-24-000027 |
+| GE | 2022 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 3.7582e+10 | 3.4912e+10 | 2023 | 0000040545-24-000027 |
+| GE | 2022 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 3.7582e+10 | 3.493e+10 | 2024 | 0000040545-25-000015 |
+| GE | 2022 | eps_diluted | EarningsPerShareDiluted | -0.05 | 0.05 | 2023 | 0000040545-24-000027 |
+| GE | 2022 | eps_diluted | EarningsPerShareDiluted | -0.05 | 0.05 | 2024 | 0000040545-25-000015 |
+| GE | 2023 | revenue | Revenues | 6.7954e+10 | 3.5348e+10 | 2024 | 0000040545-25-000015 |
+| GE | 2023 | revenue | Revenues | 6.7954e+10 | 3.5348e+10 | 2025 | 0000040545-26-000008 |
+| GE | 2023 | net_income | NetIncomeLoss | 9.481e+09 | 9.482e+09 | 2024 | 0000040545-25-000015 |
+| GE | 2023 | net_income | NetIncomeLoss | 9.481e+09 | 9.482e+09 | 2025 | 0000040545-26-000008 |
+| GE | 2023 | total_assets | Assets | 1.63045e+11 | 1.733e+11 | 2024 | 0000040545-25-000015 |
+| GE | 2023 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 2.8579e+10 | 2.8605e+10 | 2024 | 0000040545-25-000015 |
+| GE | 2023 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 2.8579e+10 | 2.8605e+10 | 2025 | 0000040545-26-000008 |
+| JNJ | 2022 | revenue | RevenueFromContractWithCustomerExcludingAssessedTax | 9.4943e+10 | 7.999e+10 | 2023 | 0000200406-24-000013 |
+| JNJ | 2022 | revenue | RevenueFromContractWithCustomerExcludingAssessedTax | 9.4943e+10 | 7.999e+10 | 2024 | 0000200406-25-000038 |
+| LLY | 2023 | revenue | Revenues | 3.41241e+10 | 3.4124e+10 | 2025 | 0000059478-26-000013 |
+| LLY | 2023 | net_income | NetIncomeLoss | 5.2404e+09 | 5.24e+09 | 2025 | 0000059478-26-000013 |
+| LLY | 2024 | revenue | Revenues | 4.50427e+10 | 4.5043e+10 | 2025 | 0000059478-26-000013 |
+| LLY | 2024 | total_assets | Assets | 7.87149e+10 | 7.8715e+10 | 2025 | 0000059478-26-000013 |
+| LRCX | 2023 | eps_diluted | EarningsPerShareDiluted | 33.21 | 3.32 | 2025 | 0000707549-25-000075 |
+| LRCX | 2024 | eps_diluted | EarningsPerShareDiluted | 29 | 2.9 | 2025 | 0000707549-25-000075 |
+| LRCX | 2024 | eps_diluted | EarningsPerShareDiluted | 29 | 2.9 | 2026 | 0000707549-26-000037 |
+| MCD | 2022 | revenue | Revenues | 2.31826e+10 | 2.3183e+10 | 2024 | 0000063908-25-000012 |
+| MCD | 2022 | net_income | NetIncomeLoss | 6.1774e+09 | 6.177e+09 | 2024 | 0000063908-25-000012 |
+| MCD | 2022 | total_assets | Assets | 5.04356e+10 | 5.0436e+10 | 2024 | 0000063908-25-000012 |
+| MCD | 2022 | total_equity | StockholdersEquity | -6.0034e+09 | -6.003e+09 | 2024 | 0000063908-25-000012 |
+| MCD | 2022 | total_equity | StockholdersEquity | -6.0034e+09 | -6.003e+09 | 2025 | 0000063908-26-000035 |
+| MCD | 2023 | revenue | Revenues | 2.54937e+10 | 2.5494e+10 | 2024 | 0000063908-25-000012 |
+| MCD | 2023 | revenue | Revenues | 2.54937e+10 | 2.5494e+10 | 2025 | 0000063908-26-000035 |
+| MCD | 2023 | net_income | NetIncomeLoss | 8.4688e+09 | 8.469e+09 | 2024 | 0000063908-25-000012 |
+| MCD | 2023 | net_income | NetIncomeLoss | 8.4688e+09 | 8.469e+09 | 2025 | 0000063908-26-000035 |
+| MCD | 2023 | operating_income | OperatingIncomeLoss | 1.16467e+10 | 1.1647e+10 | 2024 | 0000063908-25-000012 |
+| MCD | 2023 | operating_income | OperatingIncomeLoss | 1.16467e+10 | 1.1647e+10 | 2025 | 0000063908-26-000035 |
+| MCD | 2023 | total_assets | Assets | 5.61468e+10 | 5.6147e+10 | 2024 | 0000063908-25-000012 |
+| MCD | 2023 | total_assets | Assets | 5.61468e+10 | 5.6147e+10 | 2025 | 0000063908-26-000035 |
+| MCD | 2023 | total_equity | StockholdersEquity | -4.7067e+09 | -4.707e+09 | 2024 | 0000063908-25-000012 |
+| MCD | 2023 | total_equity | StockholdersEquity | -4.7067e+09 | -4.707e+09 | 2025 | 0000063908-26-000035 |
+| MMM | 2022 | revenue | Revenues | 3.4229e+10 | 2.6161e+10 | 2024 | 0000066740-25-000006 |
+| MMM | 2022 | operating_income | OperatingIncomeLoss | 6.539e+09 | 4.369e+09 | 2024 | 0000066740-25-000006 |
+| MMM | 2023 | revenue | Revenues | 3.2681e+10 | 2.461e+10 | 2024 | 0000066740-25-000006 |
+| MMM | 2023 | revenue | Revenues | 3.2681e+10 | 2.461e+10 | 2025 | 0000066740-26-000014 |
+| MMM | 2023 | operating_income | OperatingIncomeLoss | -9.128e+09 | -1.0689e+10 | 2024 | 0000066740-25-000006 |
+| MMM | 2023 | operating_income | OperatingIncomeLoss | -9.128e+09 | -1.0689e+10 | 2025 | 0000066740-26-000014 |
+| MS | 2023 | revenue | InterestAndDividendIncomeOperating | 5.0281e+10 | 4.5849e+10 | 2024 | 0000895421-25-000304 |
+| MS | 2023 | revenue | InterestAndDividendIncomeOperating | 5.0281e+10 | 4.5849e+10 | 2025 | 0000895421-26-000086 |
+| NFLX | 2023 | eps_diluted | EarningsPerShareDiluted | 12.03 | 1.2 | 2025 | 0001065280-26-000034 |
+| NFLX | 2024 | eps_diluted | EarningsPerShareDiluted | 19.83 | 1.98 | 2025 | 0001065280-26-000034 |
+| NOW | 2023 | eps_diluted | EarningsPerShareDiluted | 8.42 | 1.68 | 2025 | 0001373715-26-000007 |
+| NOW | 2024 | eps_diluted | EarningsPerShareDiluted | 6.84 | 1.37 | 2025 | 0001373715-26-000007 |
+| NVDA | 2023 | eps_diluted | EarningsPerShareDiluted | 1.74 | 0.17 | 2025 | 0001045810-25-000023 |
+| NVDA | 2024 | eps_diluted | EarningsPerShareDiluted | 11.93 | 1.19 | 2025 | 0001045810-25-000023 |
+| NVDA | 2024 | eps_diluted | EarningsPerShareDiluted | 11.93 | 1.19 | 2026 | 0001045810-26-000021 |
+| PFE | 2022 | revenue | Revenues | 1.0033e+11 | 1.01175e+11 | 2024 | 0000078003-25-000054 |
+| PFE | 2023 | revenue | Revenues | 5.8496e+10 | 5.9553e+10 | 2024 | 0000078003-25-000054 |
+| PFE | 2023 | revenue | Revenues | 5.8496e+10 | 5.9553e+10 | 2025 | 0000078003-26-000026 |
+| RTX | 2022 | operating_income | OperatingIncomeLoss | 5.414e+09 | 5.504e+09 | 2023 | 0000101829-24-000008 |
+| RTX | 2022 | operating_income | OperatingIncomeLoss | 5.414e+09 | 5.504e+09 | 2024 | 0000101829-25-000005 |
+| WFC | 2022 | net_income | NetIncomeLoss | 1.3182e+10 | 1.3677e+10 | 2023 | 0000072971-24-000064 |
+| WFC | 2022 | net_income | NetIncomeLoss | 1.3182e+10 | 1.3677e+10 | 2024 | 0000072971-25-000066 |
+| WFC | 2022 | total_assets | Assets | 1.88102e+12 | 1.88102e+12 | 2023 | 0000072971-24-000064 |
+| WFC | 2022 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 1.81875e+11 | 1.82213e+11 | 2023 | 0000072971-24-000064 |
+| WFC | 2022 | total_equity | StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest | 1.81875e+11 | 1.82213e+11 | 2024 | 0000072971-25-000066 |
+| WFC | 2022 | eps_diluted | EarningsPerShareDiluted | 3.14 | 3.27 | 2023 | 0000072971-24-000064 |
+| WFC | 2022 | eps_diluted | EarningsPerShareDiluted | 3.14 | 3.27 | 2024 | 0000072971-25-000066 |
+| WMT | 2022 | eps_diluted | EarningsPerShareDiluted | 4.87 | 1.62 | 2024 | 0000104169-24-000056 |
+| WMT | 2023 | eps_diluted | EarningsPerShareDiluted | 4.27 | 1.42 | 2024 | 0000104169-24-000056 |
+| WMT | 2023 | eps_diluted | EarningsPerShareDiluted | 4.27 | 1.42 | 2025 | 0000104169-25-000021 |
