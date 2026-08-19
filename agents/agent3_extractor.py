@@ -533,4 +533,295 @@ def extract(ingest_output: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-__all__ = ["extract"]
+# ---------------------------------------------------------------------------
+# Fiscal-year-targeted selection (T5.0, corpus scale-up)
+# ---------------------------------------------------------------------------
+#
+# ``extract`` above always picks the most recent annual fact across the
+# chain — correct for "latest 10-K" pipelines and for the gold-standard
+# evaluation, but useless for a corpus run that needs company C *at*
+# fiscal year Y. The functions below add that capability without
+# touching ``extract`` (gold-standard behavior is frozen; the corpus
+# regression gate in ``experiments/corpus_run.py`` verifies both paths
+# agree on the gold tickers).
+#
+# Selection semantics (as-originally-reported):
+#
+# 1. Anchor the fiscal year label Y to its period end E_Y: among ALL
+#    us-gaap duration facts (form 10-K, fp FY, duration >= 320d) whose
+#    ``fy`` field equals Y, E_Y is the latest ``end``. Duration facts
+#    only — instant facts dated after year-end (subsequent events,
+#    dividends declared) would corrupt the anchor. The accession most
+#    frequently attached to those anchor facts is FY Y's own 10-K.
+# 2. Per metric, walk the candidate chain and keep annual facts whose
+#    ``end`` equals E_Y. Prefer the instance reported in FY Y's own
+#    10-K (``fy == Y``); chain priority breaks ties. If the period only
+#    survives as a comparative in a later filing, fall back to the
+#    earliest such instance and mark ``source = "comparative"``.
+# 3. Any later-filing instance of the chosen tag whose value differs
+#    from the as-originally-reported value is returned under
+#    ``restatements`` so the corpus runner can log it; the original
+#    value is always the one kept.
+
+
+def _fy_of_fact(fact: dict[str, Any]) -> int | None:
+    """Return the ``fy`` field of an XBRL fact as an int, or ``None``."""
+    fy = fact.get("fy")
+    if isinstance(fy, bool):
+        return None
+    if isinstance(fy, int):
+        return fy
+    if isinstance(fy, str) and fy.strip().isdigit():
+        return int(fy.strip())
+    return None
+
+
+def _anchor_fiscal_year(
+    us_gaap: dict[str, Any],
+    fiscal_year: int,
+) -> tuple[date, str | None] | None:
+    """Resolve fiscal-year label ``fiscal_year`` to its period end and 10-K.
+
+    Scans every us-gaap tag for duration facts (``start`` + ``end``,
+    duration >= :data:`_MIN_ANNUAL_DURATION_DAYS`) with ``form == 10-K``,
+    ``fp == FY`` and ``fy == fiscal_year``. The latest ``end`` among them
+    is the fiscal period end E_Y; the accession most frequently attached
+    to facts at E_Y is that fiscal year's own 10-K.
+
+    Args:
+        us_gaap: The ``xbrl_data["facts"]["us-gaap"]`` sub-dict.
+        fiscal_year: Target fiscal-year label (EDGAR ``fy`` field).
+
+    Returns:
+        Tuple ``(period_end, accession)``; ``accession`` may be ``None``
+        if no fact carries a usable ``accn``. ``None`` when the company
+        has no annual duration facts labelled ``fy == fiscal_year`` —
+        i.e. it filed no 10-K for that fiscal year.
+    """
+    ends: list[tuple[date, str | None]] = []
+    for tag_block in us_gaap.values():
+        if not isinstance(tag_block, dict):
+            continue
+        units = tag_block.get("units")
+        if not isinstance(units, dict):
+            continue
+        for facts in units.values():
+            if not isinstance(facts, list):
+                continue
+            for fact in facts:
+                if not isinstance(fact, dict):
+                    continue
+                if fact.get("form") != _REQUIRED_FORM or fact.get("fp") != _REQUIRED_FP:
+                    continue
+                if _fy_of_fact(fact) != fiscal_year:
+                    continue
+                start = _parse_iso_date(fact.get("start"))
+                end = _parse_iso_date(fact.get("end"))
+                if start is None or end is None:
+                    continue
+                if (end - start).days < _MIN_ANNUAL_DURATION_DAYS:
+                    continue
+                accn = fact.get("accn")
+                ends.append((end, accn if isinstance(accn, str) else None))
+
+    if not ends:
+        return None
+
+    period_end = max(end for end, _accn in ends)
+    accn_counts: dict[str, int] = {}
+    for end, accn in ends:
+        if end == period_end and accn:
+            accn_counts[accn] = accn_counts.get(accn, 0) + 1
+    if not accn_counts:
+        return period_end, None
+    # Deterministic: highest count wins, lexicographic order breaks ties.
+    accession = sorted(accn_counts.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
+    return period_end, accession
+
+
+def _extract_metric_for_fy(
+    us_gaap: dict[str, Any],
+    metric: str,
+    fiscal_year: int,
+    period_end: date,
+) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
+    """Extract ``metric`` for the fiscal year anchored at ``period_end``.
+
+    Args:
+        us_gaap: The ``xbrl_data["facts"]["us-gaap"]`` sub-dict.
+        metric: Canonical metric name.
+        fiscal_year: Target fiscal-year label.
+        period_end: Period end E_Y resolved by :func:`_anchor_fiscal_year`.
+
+    Returns:
+        Tuple ``(result, restatements)``. ``result`` is ``None`` when no
+        chain tag has an annual fact at ``period_end``; otherwise a dict
+        with ``value``, ``fiscal_year``, ``period_end``, ``tag_used``,
+        ``unit``, ``accession``, ``source_fy`` and ``source``
+        (``"original"`` | ``"comparative"``). ``restatements`` lists
+        later-filing instances of the chosen tag whose value differs
+        from the kept one.
+    """
+    expected_unit = _METRIC_UNITS.get(metric)
+    if expected_unit is None:
+        _LOGGER.warning("Métrica desconocida %s, no hay unidad esperada", metric)
+        return None, []
+
+    candidates = _collect_annual_candidates(us_gaap, _lookup_tags(metric), expected_unit)
+    matching = [c for c in candidates if c[0] == period_end]
+    if not matching:
+        return None, []
+
+    originals = [c for c in matching if _fy_of_fact(c[3]) == fiscal_year]
+    if originals:
+        originals.sort(key=lambda c: c[1])
+        chosen = originals[0]
+        source = "original"
+    else:
+        # Only later comparatives carry this period: earliest report wins.
+        matching.sort(key=lambda c: (_fy_of_fact(c[3]) or 9999, c[1]))
+        chosen = matching[0]
+        source = "comparative"
+
+    _end, _priority, tag_used, fact = chosen
+    chosen_value = float(fact["val"])
+    chosen_fy = _fy_of_fact(fact)
+
+    restatements: list[dict[str, Any]] = []
+    seen: set[tuple[int | None, float]] = set()
+    for c in matching:
+        if c[2] != tag_used:
+            continue
+        other = c[3]
+        other_fy = _fy_of_fact(other)
+        if other_fy == chosen_fy:
+            continue
+        other_value = float(other["val"])
+        key = (other_fy, other_value)
+        if key in seen:
+            continue
+        seen.add(key)
+        differs = (
+            abs(other_value - chosen_value) / abs(chosen_value) > 1e-9
+            if chosen_value != 0.0
+            else other_value != 0.0
+        )
+        if differs:
+            other_accn = other.get("accn")
+            restatements.append({
+                "metric": metric,
+                "tag": tag_used,
+                "period_end": fact.get("end"),
+                "original_value": chosen_value,
+                "original_fy": chosen_fy,
+                "restated_value": other_value,
+                "restated_fy": other_fy,
+                "restated_accession": other_accn if isinstance(other_accn, str) else None,
+            })
+
+    accession = fact.get("accn")
+    result = {
+        "value": chosen_value,
+        "fiscal_year": fiscal_year,
+        "period_end": fact.get("end"),
+        "tag_used": tag_used,
+        "unit": expected_unit,
+        "accession": accession if isinstance(accession, str) else None,
+        "source_fy": chosen_fy,
+        "source": source,
+    }
+    return result, restatements
+
+
+def extract_for_fiscal_year(
+    ingest_output: dict[str, Any],
+    fiscal_year: int,
+    metrics: tuple[str, ...] | None = None,
+) -> dict[str, Any]:
+    """Run L3 extraction targeted at one specific fiscal year.
+
+    Unlike :func:`extract` (most-recent-wins, used by the pipeline and
+    the gold-standard evaluation), this selects each metric *at* the
+    given fiscal-year label, preferring the value as originally
+    reported in that fiscal year's own 10-K. See the section comment
+    above for the full semantics.
+
+    Args:
+        ingest_output: Output of L1 Ingestion (needs ``company``,
+            ``ticker`` and ``xbrl_data``).
+        fiscal_year: Target fiscal-year label (EDGAR ``fy`` field, the
+            filer's own labelling convention).
+        metrics: Metric names to extract. Defaults to
+            :data:`agents._gold_schema.GOLD_METRICS`.
+
+    Returns:
+        Dict with ``company``, ``ticker``, ``fiscal_year``,
+        ``period_end`` (ISO string or ``None``), ``accession`` (the
+        fiscal year's own 10-K, or ``None``), ``metrics`` (per-metric
+        result dicts or ``None``) and ``restatements`` (flat list across
+        metrics). When the company has no 10-K facts for the fiscal
+        year, every metric is ``None`` and ``period_end`` is ``None``.
+    """
+    if not isinstance(ingest_output, dict):
+        ingest_output = {}
+    if metrics is None:
+        metrics = GOLD_METRICS
+
+    ticker = ingest_output.get("ticker", "") or ""
+    company = ingest_output.get("company", "") or ""
+
+    xbrl_data = ingest_output.get("xbrl_data") or {}
+    facts = xbrl_data.get("facts") if isinstance(xbrl_data, dict) else None
+    us_gaap = facts.get("us-gaap") if isinstance(facts, dict) else None
+    if not isinstance(us_gaap, dict):
+        _LOGGER.warning(
+            "L3-FY no encontró facts['us-gaap'] para %s (FY%s)",
+            ticker or "<unknown>", fiscal_year,
+        )
+        us_gaap = {}
+
+    anchor = _anchor_fiscal_year(us_gaap, fiscal_year)
+    if anchor is None:
+        _LOGGER.info(
+            "L3-FY: %s no tiene hechos anuales 10-K con fy=%s",
+            ticker or "<unknown>", fiscal_year,
+        )
+        return {
+            "company": company,
+            "ticker": ticker,
+            "fiscal_year": fiscal_year,
+            "period_end": None,
+            "accession": None,
+            "metrics": {m: None for m in metrics},
+            "restatements": [],
+        }
+
+    period_end, filing_accession = anchor
+    results: dict[str, dict[str, Any] | None] = {}
+    all_restatements: list[dict[str, Any]] = []
+    for metric in metrics:
+        result, restatements = _extract_metric_for_fy(
+            us_gaap, metric, fiscal_year, period_end,
+        )
+        results[metric] = result
+        all_restatements.extend(restatements)
+
+    found = sum(1 for v in results.values() if v is not None)
+    _LOGGER.info(
+        "L3-FY completado para %s FY%s (end=%s): %d/%d métricas",
+        ticker or "<unknown>", fiscal_year, period_end.isoformat(),
+        found, len(metrics),
+    )
+
+    return {
+        "company": company,
+        "ticker": ticker,
+        "fiscal_year": fiscal_year,
+        "period_end": period_end.isoformat(),
+        "accession": filing_accession,
+        "metrics": results,
+        "restatements": all_restatements,
+    }
+
+
+__all__ = ["extract", "extract_for_fiscal_year"]
