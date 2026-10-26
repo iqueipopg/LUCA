@@ -22,7 +22,7 @@ Pipeline **E2E funcional de L1 a L7** (sin L6/L8). Resultados clave sobre el gol
 | Baseline LLM structured | ~50 % |
 | Baseline LLM naive | 3.3 % |
 
-Brecha L3 vs mejor baseline: **≈ +48–50 pp** (titular del paper). Fuente de verdad de los números: `docs/eval/results_real.md`.
+Brecha L3 vs mejor baseline: **≈ +48–50 pp** (titular del paper). Fuente de verdad de los números: `docs/eval/results_real.md`. El gold standard anotado a mano no se distribuye en este repositorio; `data/gold_standard_template.json` documenta su formato.
 
 - **Implementado y evaluado:** L1 (ingestion), L2 (parser + chunker Item 1A), L3 (extractor estructurado XBRL).
 - **Implementado (capa cualitativa, pendiente de revisión humana):** L4 (extracción de riesgos), L5 (métricas derivadas deterministas + clasificación con Qwen), L7 (investment memo).
@@ -50,8 +50,7 @@ Requiere Ollama sirviendo `qwen2.5:7b-instruct-q4_K_M` en local y `SEC_USER_AGEN
 ## Cómo empezar
 
 1. Lee `INSTALL.md` para montar el entorno.
-2. Lee las reglas del proyecto para entender el proyecto y las convenciones.
-3. Lee `ARCHITECTURE.md` para entender el pipeline.
+2. Lee `ARCHITECTURE.md` para entender el pipeline.
 
 ## Estructura
 
@@ -59,22 +58,14 @@ Requiere Ollama sirviendo `qwen2.5:7b-instruct-q4_K_M` en local y `SEC_USER_AGEN
 luca/
 ├── README.md                         # Este archivo
 ├── INSTALL.md                        # Setup paso a paso
-├── las reglas del proyecto                         # Contexto y reglas del proyecto
 ├── ARCHITECTURE.md                   # Diseño del pipeline
 ├── SPRINT_PLAN.md                    # Planificación de sprints
 ├── run_pipeline.py                   # CLI orquestador L1→L7 (flag --memo)
-│   ├── settings.json                 # Config compartida (commiteada)
-│   ├── settings.local.json           # Config local (no commiteada)
-│   └── mcp.json                      # Servidores MCP
 ├── config/
 │   └── agents.json                   # Config de los agentes del pipeline LUCA
 ├── config.yaml                       # Config global del pipeline
 ├── data/
 │   └── gold_standard_template.json   # Template de anotación manual
-├── skills/                           # Skills de dominio (SEC, XBRL, LLM local)
-│   ├── sec-edgar/                    # Interfaz a SEC EDGAR API
-│   ├── xbrl-parsing/                 # Parseo y extracción XBRL
-│   └── local-llm/                    # Cliente Ollama/Qwen
 ├── agents/                           # Código del pipeline L1→L8
 │   ├── _logging.py                   # Logging centralizado
 │   ├── _config.py                    # Carga de configuración

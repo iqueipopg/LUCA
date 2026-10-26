@@ -7,17 +7,11 @@
 - NVIDIA GPU con drivers + CUDA (verificado en RTX 4060 8GB)
 - Ollama instalado para servir el modelo local (ver https://ollama.com)
 
-## Paso 1. Clonar / inicializar el repositorio
-
-Si empiezas desde este scaffold:
+## Paso 1. Clonar el repositorio
 
 ```bash
-cd ~
-mv ~/Descargas/luca-starter ~/luca-ai-lab
+git clone https://github.com/iqueipopg/LUCA.git ~/luca-ai-lab
 cd ~/luca-ai-lab
-git init
-git add .
-git commit -m "chore: initial scaffold"
 ```
 
 ## Paso 2. Entorno Python
@@ -28,11 +22,6 @@ python3.11 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
-```
-
-
-```
-/home/<tu-usuario>/luca-ai-lab/venv/bin/python
 ```
 
 ## Paso 3. Descargar el modelo local (Qwen 2.5 7B)
@@ -73,18 +62,6 @@ ollama list
 nvidia-smi
 ```
 
-
-```bash
-cd ~/luca-ai-lab
-```
-
-
-## Paso 7. (Primera vez) Configurar settings.local.json
-
-```bash
-```
-
-Edita las rutas dentro del archivo para que apunten a tu `$HOME` real.
 
 ## Troubleshooting
 
